@@ -12,7 +12,7 @@ export const content = {
       cta: "Enroll Now",
     },
     hero: {
-      headline: "We build thinkers, not just codersssszzs.",
+      headline: "We build thinkers, not just coders.",
       subtext:
         "CTRLS-S is a youth-focused tech education program that teaches problem-solving mindset, soft skills, and digital literacy through a structured multi-level journey. We empower young minds to think critically, solve creatively, and build confidently for the future.",
       cta: "Discover Our Program",
