@@ -18,11 +18,11 @@ export default function Footer() {
             prefetch={false}
           >
             <Image
-              src="/pic/ctrl s.png" // Logo path is already here
-              width={64} // Increased width
-              height={64} // Increased height
+              src="C:\Users\Abd Elsalam\OneDrive\Desktop\ctrls-s-website\pic\ctrl s.png"
+              width={468} // Updated width to actual intrinsic dimension
+              height={766} // Updated height to actual intrinsic dimension
               alt={currentContent.header.logoAlt}
-              className="h-12 w-12" // Increased Tailwind classes
+              className="h-12 w-12" // Tailwind classes for rendered size
             />
             <span>CTRLS-S</span>
           </Link>
