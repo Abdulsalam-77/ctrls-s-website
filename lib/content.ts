@@ -25,37 +25,37 @@ export const content = {
         {
           icon: "Brain",
           shortTitle: "Thinkers, Not Just Coders",
-          image: "/placeholder.svg?height=400&width=600",
-          detailedDescription:
+          description:
             "We don’t just teach your child how to code — we teach them how to think. From breaking down complex problems to building logical solutions, this mindset empowers them far beyond the screen. It’s the real skill that shapes future creators, leaders, and innovators.",
+          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Thinkers", // New property
         },
         {
           icon: "Users",
           shortTitle: "Soft Skills That Power Every Future",
-          image: "/placeholder.svg?height=400&width=600",
-          detailedDescription:
+          description:
             "In a world full of information, your child learns how to find what matters — and explain it clearly. We develop their communication, critical thinking, and smart research skills — the qualities that make a student stand out anywhere, from school to real life.",
+          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Soft Skills", // New property
         },
         {
           icon: "Laptop",
           shortTitle: "Early Tech Skills, Real Impact",
-          image: "/placeholder.svg?height=400&width=600",
-          detailedDescription:
+          description:
             "Your child deserves more than just screen time — they deserve to understand how technology works. We teach foundational digital skills like logic, coding, and structured thinking in a way that’s fun, practical, and age-appropriate — giving them a true head start.",
+          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Early Tech", // New property
         },
         {
           icon: "Map",
           shortTitle: "A Clear, Guided Learning Journey",
-          image: "/placeholder.svg?height=400&width=600",
-          detailedDescription:
+          description:
             "No guesswork, no randomness. Our step-by-step curriculum takes your child from digital basics to coding confidently. With each level, they build independence, creativity, and confidence — all through real-world projects and guided support.",
+          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Learning Journey", // New property
         },
         {
           icon: "Heart",
           shortTitle: "A Learning Community That Feels Like Family",
-          image: "/placeholder.svg?height=400&width=600",
-          detailedDescription:
+          description:
             "We treat your child’s growth like our own. Through mentorship, care, and ongoing connection, we create a space where students feel safe, seen, and supported — so learning becomes a journey, not just a subject.",
+          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Community", // New property
         },
       ],
     },
@@ -208,37 +208,37 @@ export const content = {
         {
           icon: "Brain",
           shortTitle: "نصنع مفكرين، مش بس مبرمجين",
-          image: "/placeholder.svg?height=400&width=600",
-          detailedDescription:
+          description:
             "نحن لا نُعلِّم الأطفال البرمجة فقط، بل نُعلِّمهم كيف يفكرون بشكل منطقي ومنهجي. نُساعدهم على تحليل المشكلات وبناء حلول حقيقية — مهارة تتجاوز الشاشة، وتشكّل شخصية قيادية ومبدعة في المستقبل.",
+          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=مفكرين", // New property
         },
         {
           icon: "Users",
           shortTitle: "مهارات ناعمة تصنع فرقًا حقيقيًا",
-          image: "/placeholder.svg?height=400&width=600",
-          detailedDescription:
+          description:
             "في عالم مليء بالمعلومات، نُدرّب الطفل على كيفية البحث بذكاء، واختيار المعلومة المفيدة، والتعبير عنها بوضوح. مهارات التفكير الناقد، التواصل الفعّال، والتحليل المنطقي تجعل منه طالبًا واثقًا في المدرسة وخارجها.",
+          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=مهارات ناعمة", // New property
         },
         {
           icon: "Laptop",
           shortTitle: "مهارات تقنية مبكرة بتأثير حقيقي",
-          image: "/placeholder.svg?height=400&width=600",
-          detailedDescription:
+          description:
             "طفلك يستحق أكثر من مجرد التفاعل مع الشاشات — يستحق أن يفهم كيف تُبنى التكنولوجيا من الداخل. نُقدّم مهارات البرمجة، التفكير المنطقي، والمهارات الرقمية الأساسية بطريقة ممتعة وعملية ومناسبة لعمره.",
+          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=مهارات تقنية", // New property
         },
         {
           icon: "Map",
           shortTitle: "رحلة تعليمية واضحة وموجهة",
-          image: "/placeholder.svg?height=400&width=600",
-          detailedDescription:
+          description:
             "لا عشوائية ولا ارتباك. محتوى مُنظم ينقل الطفل خطوة بخطوة من الأساسيات إلى البرمجة بثقة. مع كل مستوى، تتطور لديه مهارات الاستقلال، الإبداع، والثقة بالنفس من خلال مشاريع واقعية وتوجيه مستمر.",
+          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=رحلة تعليمية", // New property
         },
         {
           icon: "Heart",
           shortTitle: "مجتمع تعليمي بروح العائلة",
-          image: "/placeholder.svg?height=400&width=600",
-          detailedDescription:
+          description:
             "نؤمن أن رحلة الطفل التعليمية تبدأ من الثقة والدعم. نُعامل كل طالب كأنه منّا — برعاية، تواصل، وتوجيه حقيقي يجعل من التعلم تجربة مليئة بالاهتمام والنجاح.",
+          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=مجتمع تعليمي", // New property
         },
       ],
     },
