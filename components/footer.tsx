@@ -18,7 +18,7 @@ export default function Footer() {
             prefetch={false}
           >
             <Image
-              src="C:\Users\Abd Elsalam\OneDrive\Desktop\ctrls-s-website\pic\ctrl s.png"
+              src="/pic/ctrl s.png"
               width={468} // Updated width to actual intrinsic dimension
               height={766} // Updated height to actual intrinsic dimension
               alt={currentContent.header.logoAlt}
