@@ -31,7 +31,7 @@ export default function Header() {
           prefetch={false}
         >
           <Image
-            src="/placeholder.svg?height=32&width=32"
+            src="C:\Users\Abd Elsalam\OneDrive\Desktop\ctrls-s-website\pic\ctrl s.png"
             width={32}
             height={32}
             alt={currentContent.header.logoAlt}
