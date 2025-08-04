@@ -18,11 +18,11 @@ export default function Footer() {
             prefetch={false}
           >
             <Image
-              src="/placeholder.svg?height=32&width=32"
-              width={32}
-              height={32}
+              src="/pic/ctrl s.png" // Logo path is already here
+              width={64} // Increased width
+              height={64} // Increased height
               alt={currentContent.header.logoAlt}
-              className="h-8 w-8"
+              className="h-12 w-12" // Increased Tailwind classes
             />
             <span>CTRLS-S</span>
           </Link>
