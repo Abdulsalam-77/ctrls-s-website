@@ -8,6 +8,7 @@ export const content = {
         { name: "Roadmap", href: "/#roadmap" }, // Updated to hash link
         { name: "Certificate", href: "/#certificate" }, // Updated to hash link
         { name: "Contact", href: "/contact" },
+        { name: "Login", href: "/auth/login" }, // Added Login link
       ],
       cta: "Enroll Now",
     },
@@ -190,6 +191,7 @@ export const content = {
         { name: "خارطة الطريق", href: "/#roadmap" }, // Updated to hash link
         { name: "الشهادة", href: "/#certificate" }, // Updated to hash link
         { name: "اتصل بنا", href: "/contact" },
+        { name: "تسجيل الدخول", href: "/auth/login" }, // Added Login link
       ],
       cta: "سجّل الآن",
     },
@@ -364,3 +366,4 @@ export const content = {
     },
   },
 }
+
