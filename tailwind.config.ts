@@ -53,25 +53,13 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Custom colors for CTRLS-S
-        teal: "#00A8A8",
-        purple: "#6A4C93",
-        blueGradientStart: "#4958b0",
-        blueGradientEnd: "#7583d4",
-        darkProfessional: "#212529",
-        lightGreyText: "#495057",
-        accentOrange: "#FFA500",
-        accentYellow: "#FFFF00",
-        accentLightBlue: "#ADD8E6",
-        // New colors for roadmap
-        lightBackground: "#F0F8FF", // Light blue background from image
-        filterBlue: "#1A73E8", // Selected filter blue
-        filterGrey: "#E0E0E0", // Unselected filter grey
-        cardGradient: "#4c2c92", // Deep space gradient for cards (start color)
-        cardGradientEnd: "#1a8aed", // Deep space gradient for cards (end color)
-        floatingBlue: "#00BFFF", // For decorative blue dots
-        floatingOrange: "#FFA500", // For decorative orange dots/flags
-        floatingYellow: "#FFD700", // For decorative wavy line
+        // New Global Color Palette
+        "primary-purple": "#5B21B6",
+        "accent-teal": "#14B8A6",
+        "accent-blue": "#3B82F6",
+        "neutral-dark": "#1F2937",
+        "neutral-grey": "#6B7281",
+        "bg-light": "#F9FAFB", // For alternating sections
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -93,8 +81,8 @@ const config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       fontFamily: {
-        poppins: ["var(--font-poppins)"],
-        montserrat: ["var(--font-montserrat)"],
+        inter: ["Inter", "sans-serif"], // Primary English Font
+        tajawal: ["Tajawal", "sans-serif"], // Primary Arabic Font
       },
       boxShadow: {
         "blue-glow": "0 0 8px rgba(52, 152, 219, 0.7)",

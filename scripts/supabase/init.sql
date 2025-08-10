@@ -36,6 +36,7 @@ CREATE TABLE public.content_items (
   section TEXT NOT NULL, -- e.g., 'theoretical', 'practical'
   url TEXT, -- For videos or external links
   text_content TEXT, -- For general text content
+  thumbnail_image TEXT, -- NEW: Add this column for thumbnail URLs
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

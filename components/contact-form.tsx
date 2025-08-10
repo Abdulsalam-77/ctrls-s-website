@@ -15,14 +15,18 @@ export default function ContactForm() {
   return (
     <section className="bg-gray-50 py-16 md:py-24">
       <div className="container px-4 md:px-6">
-        <h2 className="text-center font-montserrat text-3xl font-extrabold text-purple md:text-4xl">
+        <h2 className="text-center font-inter text-3xl font-extrabold text-primary-purple md:text-4xl lg:text-[48px]">
           {currentContent.contact.title}
         </h2>
-        <p className="mt-4 text-center text-lg text-gray-700">{currentContent.contact.description}</p>
+        <p className="mt-4 text-center text-base font-normal text-neutral-grey leading-relaxed">
+          {currentContent.contact.description}
+        </p>
         <div className="mx-auto mt-12 max-w-2xl rounded-lg bg-white p-8 shadow-lg">
           <form className="space-y-6">
             <div className={cn("grid gap-2", isArabic && "text-right")}>
-              <Label htmlFor="name">{currentContent.contact.form.name}</Label>
+              <Label htmlFor="name" className="text-neutral-dark">
+                {currentContent.contact.form.name}
+              </Label>
               <Input
                 id="name"
                 placeholder={currentContent.contact.form.name}
@@ -30,7 +34,9 @@ export default function ContactForm() {
               />
             </div>
             <div className={cn("grid gap-2", isArabic && "text-right")}>
-              <Label htmlFor="email">{currentContent.contact.form.email}</Label>
+              <Label htmlFor="email" className="text-neutral-dark">
+                {currentContent.contact.form.email}
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -39,7 +45,9 @@ export default function ContactForm() {
               />
             </div>
             <div className={cn("grid gap-2", isArabic && "text-right")}>
-              <Label htmlFor="message">{currentContent.contact.form.message}</Label>
+              <Label htmlFor="message" className="text-neutral-dark">
+                {currentContent.contact.form.message}
+              </Label>
               <Textarea
                 id="message"
                 placeholder={currentContent.contact.form.message}
@@ -49,21 +57,21 @@ export default function ContactForm() {
             </div>
             <Button
               type="submit"
-              className="w-full rounded-full bg-teal px-6 py-3 font-bold text-white hover:bg-purple"
+              className="w-full rounded-full bg-accent-teal px-6 py-3 font-bold text-white hover:bg-primary-purple"
             >
               {currentContent.contact.form.submit}
             </Button>
           </form>
           <div className={cn("mt-8 space-y-4 text-center", isArabic && "text-right")}>
             <div className="flex items-center justify-center gap-2 md:justify-start">
-              <Mail className="h-5 w-5 text-purple" />
-              <a href={`mailto:${currentContent.contact.info.email}`} className="text-gray-700 hover:underline">
+              <Mail className="h-5 w-5 text-primary-purple" />
+              <a href={`mailto:${currentContent.contact.info.email}`} className="text-neutral-grey hover:underline">
                 {currentContent.contact.info.email}
               </a>
             </div>
             <div className="flex items-center justify-center gap-2 md:justify-start">
-              <Phone className="h-5 w-5 text-purple" />
-              <a href={`tel:${currentContent.contact.info.phone}`} className="text-gray-700 hover:underline">
+              <Phone className="h-5 w-5 text-primary-purple" />
+              <a href={`tel:${currentContent.contact.info.phone}`} className="text-neutral-grey hover:underline">
                 {currentContent.contact.info.phone}
               </a>
             </div>
@@ -72,16 +80,16 @@ export default function ContactForm() {
                 href={`https://wa.me/${currentContent.contact.info.phone.replace(/\D/g, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple hover:text-teal"
+                className="text-primary-purple hover:text-accent-teal"
               >
                 <MessageCircle className="h-6 w-6" />
                 <span className="sr-only">{currentContent.contact.social.whatsapp}</span>
               </a>
-              <a href="#" className="text-purple hover:text-teal">
+              <a href="#" className="text-primary-purple hover:text-accent-teal">
                 <Facebook className="h-6 w-6" />
                 <span className="sr-only">{currentContent.contact.social.facebook}</span>
               </a>
-              <a href="#" className="text-purple hover:text-teal">
+              <a href="#" className="text-primary-purple hover:text-accent-teal">
                 <Instagram className="h-6 w-6" />
                 <span className="sr-only">{currentContent.contact.social.instagram}</span>
               </a>

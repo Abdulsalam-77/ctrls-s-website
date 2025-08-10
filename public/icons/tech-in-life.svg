@@ -1,0 +1,27 @@
+<svg width="106" height="103" viewBox="0 0 106 103" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="sketchy-D"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="1" result="turbulence"/><feDisplacementMap in="SourceGraphic" in2="turbulence" scale="1.5" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M14.5 31.5C1.5 49 -1.5 73 14.5 86C30.5 99 68.5 100.5 83.5 84.5C98.5 68.5 99.5 33 80.5 17C61.5 1 27.5 14 14.5 31.5Z" fill="#B58DB6" opacity="0.6" filter="url(#sketchy-D)"/>
+    <g filter="url(#sketchy-D)" stroke="#264653" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Globe -->
+        <circle cx="53" cy="51.5" r="25" fill="#ffffff"/>
+        <path d="M53 26.5 V 76.5 M28 51.5 H 78"/>
+        <ellipse cx="53" cy="51.5" rx="12" ry="25"/>
+        
+        <!-- Surrounding Icons -->
+        <!-- Shopping Cart -->
+        <g transform="translate(15 20) scale(0.8)">
+            <path d="M5 10 h 20 l -2 8 h -16 z"/>
+            <circle cx="10" cy="22" r="2"/><circle cx="18" cy="22" r="2"/>
+        </g>
+        <!-- GPS Pin -->
+        <g transform="translate(75 25) scale(0.8)">
+            <path d="M12 2 C 5 2, 0 8, 0 14 C 0 22, 12 30, 12 30 C 12 30, 24 22, 24 14 C 24 8, 19 2, 12 2 Z"/>
+            <circle cx="12" cy="14" r="4" fill="#ffffff"/>
+        </g>
+        <!-- Credit Card -->
+        <g transform="translate(70 70) scale(0.8)">
+            <rect x="0" y="0" width="25" height="15"/>
+            <path d="M0 5 h 25 M 5 10 h 10"/>
+        </g>
+    </g>
+</svg>

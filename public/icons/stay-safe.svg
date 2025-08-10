@@ -1,0 +1,15 @@
+<svg width="106" height="103" viewBox="0 0 106 103" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="sketchy-C"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="1" result="turbulence"/><feDisplacementMap in="SourceGraphic" in2="turbulence" scale="1.5" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M8.5 44.5C-2.5 28 20.5 -1.5 45.5 5.5C70.5 12.5 107.5 15 99 44.5C90.5 74 78 99.5 45.5 97C13 94.5 19.5 61 8.5 44.5Z" fill="#E9C46A" opacity="0.6" filter="url(#sketchy-C)"/>
+    <g filter="url(#sketchy-C)" transform="rotate(5 53 51.5)">
+        <!-- Faint circular outline -->
+        <circle cx="53" cy="51.5" r="35" stroke="#264653" stroke-width="1.5" stroke-opacity="0.3" fill="none"/>
+        <!-- Shield with smoothed bottom curve -->
+        <path d="M30 25 L 76 25 L 76 60 C 76 90, 30 90, 30 60 Z" fill="#ffffff" stroke="#264653" stroke-width="2"/>
+        <!-- Padlock -->
+        <g transform="translate(43 48)">
+            <rect x="0" y="10" width="14" height="11" stroke="#264653" stroke-width="2" fill="#ffffff"/>
+            <path d="M7 10 V 4 C 7 -2, 14 -2, 14 4" stroke="#264653" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </g>
+    </g>
+</svg>

@@ -1,28 +1,28 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Poppins, Montserrat } from "next/font/google"
+import { Inter, Tajawal } from "next/font/google" // UPDATED: Import Inter and Tajawal
 import "./globals.css"
 import { cn } from "@/lib/utils"
 import { LanguageProvider } from "@/components/language-context"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
+import WhatsAppFixedButton from "@/components/whatsapp-fixed-button"
 
-const poppins = Poppins({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-poppins",
+  weight: ["400", "500", "700", "800"], // UPDATED: Weights for Inter
+  variable: "--font-inter",
 })
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["400", "700", "800"],
-  variable: "--font-montserrat",
+const tajawal = Tajawal({
+  subsets: ["arabic"], // UPDATED: Subsets for Tajawal
+  weight: ["400", "500", "700", "800"], // UPDATED: Weights for Tajawal
+  variable: "--font-tajawal",
 })
 
 export const metadata: Metadata = {
   title: "CTRLS-S - We build thinkers, not just coders.",
   description: "Youth-focused tech education program teaching problem-solving, soft skills, and digital literacy.",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -32,13 +32,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={cn("min-h-screen bg-background font-poppins antialiased", poppins.variable, montserrat.variable)}
-      >
+      <body className={cn("min-h-screen antialiased", inter.variable, tajawal.variable)}>
+        {" "}
+        {/* UPDATED: Apply new font variables */}
         <LanguageProvider>
-          <Header />
-          <main>{children}</main>
-          <Footer />
+          <div className="flex min-h-screen flex-col">
+            <Header className="z-20" />
+            <main className="relative z-10 flex-grow">{children}</main>
+            <Footer className="relative z-10" />
+            <WhatsAppFixedButton />
+          </div>
         </LanguageProvider>
       </body>
     </html>

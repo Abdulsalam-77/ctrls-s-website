@@ -1,0 +1,30 @@
+<svg class="custom-icon" viewBox="0 0 106 103" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <filter id="sketchy-5">
+            <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="1" result="turbulence"/>
+            <feDisplacementMap in="SourceGraphic" in2="turbulence" scale="1.5" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+    </defs>
+    <!-- Restored the background blob -->
+    <path d="M85.4 87.7C99.2 75.3 103.4 46.5 89 27.3C74.6 8.1 41 -1.5 24.2 8.1C7.4 17.7 1.4 49.7 15.8 68.9C30.2 88.1 71.6 100.1 85.4 87.7Z" fill="#E76F51" opacity="0.6" filter="url(#sketchy-5)"/>
+    <g stroke="#264653" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#sketchy-5)">
+        <!-- Stage 1: Laptop with lines -->
+        <rect x="5" y="45" width="25" height="18" fill="#ffffff" stroke-width="1.5"/>
+        <path d="M3 63 L 32 63 L 30 45 L 5 45 Z"/>
+        <path d="M10 51 h 15 M10 56 h 15"/>
+        <!-- Arrow 1 -->
+        <path d="M35 54 L 42 54"/>
+        <path d="M39 51 l3 3 l-3 3"/>
+        <!-- Stage 2: Laptop with checkmark -->
+        <rect x="45" y="45" width="25" height="18" fill="#ffffff" stroke-width="1.5"/>
+        <path d="M43 63 L 72 63 L 70 45 L 45 45 Z"/>
+        <path d="M50 53 l4 4 l8 -8" stroke-width="2"/>
+        <!-- Arrow 2 -->
+        <path d="M74 54 L 81 54"/>
+        <path d="M78 51 l3 3 l-3 3"/>
+        <!-- Stage 3: Lightbulb -->
+        <path d="M92 42 C87 42 85 47 85 52 C85 60 99 60 99 52 C99 47 97 42 92 42 Z"/>
+        <rect x="89" y="60" width="6" height="8" fill="#264653"/>
+        <path d="M92 39 v-3 M102 52 h3 M82 52 h-3 M98 46 l2 -2 M86 46 l-2 -2"/>
+    </g>
+</svg>

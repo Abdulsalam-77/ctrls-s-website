@@ -1,11 +1,20 @@
-"use client"
+"use client";
 
-import { useLanguage } from "@/components/language-context"
-import { Brain, Users, Laptop, Heart, Palette, Code, Rocket, Map } from "lucide-react" // Added Map as it was missing from previous imports
-import { cn } from "@/lib/utils"
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
+import { useLanguage } from "@/components/language-context";
+import {
+  Brain,
+  Users,
+  Laptop,
+  Heart,
+  Palette,
+  Code,
+  Rocket,
+  Map,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 const IconMap = {
   Brain: Brain,
@@ -14,140 +23,183 @@ const IconMap = {
   Palette: Palette,
   Code: Code,
   Rocket: Rocket,
-  Map: Map, // Ensure Map is included in the map
+  Map: Map,
   Heart: Heart,
-}
+};
 
 export default function WhyCtrlsSSection() {
-  const { currentContent, language } = useLanguage()
-  const isArabic = language === "ar"
+  const { currentContent, language } = useLanguage();
+  const isArabic = language === "ar";
 
-  // State for desktop/tablet active tab
-  const [activeReasonIndex, setActiveReasonIndex] = useState(0)
+  const [activeReasonIndex, setActiveReasonIndex] = useState(0);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // State for mobile carousel
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
-  const [isMobile, setIsMobile] = useState(false)
-
-  // Determine if it's a mobile view
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
-  }, [])
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
-  // Auto-play for mobile carousel
   useEffect(() => {
     if (isMobile) {
       const interval = setInterval(() => {
-        setCurrentSlideIndex((prevIndex) => (prevIndex + 1) % currentContent.whyCtrlsS.points.length)
-      }, 6000) // Change slide every 6 seconds
-      return () => clearInterval(interval)
+        setCurrentSlideIndex(
+          (prevIndex) =>
+            (prevIndex + 1) % currentContent.whyCtrlsS.points.length
+        );
+      }, 4000);
+      return () => clearInterval(interval);
     }
-  }, [isMobile, currentContent.whyCtrlsS.points.length])
+  }, [isMobile, currentContent.whyCtrlsS.points.length]);
 
   return (
-    <section id="why-ctrls-s" className="bg-white py-16 md:py-24">
+    <section id="why-ctrls-s" className="py-16 md:py-24 bg-white">
       <div className="container px-4 md:px-6">
-        <h2 className="text-center font-montserrat text-3xl font-extrabold text-purple md:text-4xl">
+        <h2 className="text-center font-inter text-3xl font-extrabold text-primary-purple md:text-4xl lg:text-[48px]">
           {currentContent.whyCtrlsS.title}
         </h2>
 
-        {/* Desktop & Tablet Layout (>= 768px) */}
+        {/* Desktop & Tablet Layout */}
         <div
           className={cn(
-            "hidden md:flex mt-12 gap-8 items-center", // Flex container for two columns
-            "min-h-[500px]", // Minimum height to ensure content fits without scrolling
-            isArabic ? "md:flex-row-reverse" : "md:flex-row", // Explicit flex-direction for desktop LTR/RTL
+            "hidden md:flex mt-12 gap-8 items-center min-h-[500px]",
+            isArabic ? "md:flex-row-reverse" : "md:flex-row"
           )}
         >
-          {/* Reasons Column (Left for LTR, Right for RTL) */}
-          <div
-            className={cn(
-              "flex flex-col gap-4 md:w-2/5",
-              isArabic ? "text-right" : "text-left", // Text alignment based on language
-            )}
-          >
+          {/* Reasons List */}
+          <div className="flex flex-col gap-4 md:w-2/5">
             {currentContent.whyCtrlsS.points.map((point, index) => {
-              const IconComponent = IconMap[point.icon as keyof typeof IconMap]
-              const isActive = index === activeReasonIndex
+              const IconComponent = IconMap[point.icon as keyof typeof IconMap];
+              const isActive = index === activeReasonIndex;
               return (
                 <Button
                   key={index}
                   variant="ghost"
                   className={cn(
-                    "flex items-center gap-4 p-4 rounded-lg shadow-md transition-all duration-300 h-auto",
+                    "flex flex-row items-center gap-4 p-4 rounded-lg shadow-md transition-all duration-300 h-auto w-full justify-start",
                     isActive
-                      ? "bg-gradient-to-r from-blueGradientStart to-blueGradientEnd text-white"
-                      : "bg-gradient-to-br from-teal/10 to-purple/10 text-purple hover:scale-[1.02]",
-                    isArabic ? "flex-row-reverse justify-end" : "justify-start", // Reverse icon and text for Arabic, justify to end
+                      ? "bg-gradient-to-r from-blueGradientStart to-blueGradientEnd text-primary-purple"
+                      : "bg-gradient-to-br from-teal/10 to-purple/10 text-black hover:scale-[1.02]"
                   )}
                   onClick={() => setActiveReasonIndex(index)}
                 >
-                  {IconComponent && <IconComponent className={cn("h-8 w-8", isActive ? "text-white" : "text-teal")} />}
-                  <h3 className={cn("font-montserrat text-lg font-bold", isActive ? "text-white" : "text-purple")}>
+                  {IconComponent && (
+                    <IconComponent
+                      className={cn(
+                        "h-8 w-8",
+                        isActive ? "text-accent-teal" : "text-accent-teal"
+                      )}
+                    />
+                  )}
+                  <h3
+                    className={cn(
+                      "font-inter text-lg font-bold ",
+                      isArabic && "text-right"
+                    )}
+                  >
                     {point.shortTitle}
                   </h3>
                 </Button>
-              )
+              );
             })}
           </div>
 
-          {/* Feature Image Column (Right for LTR, Left for RTL) */}
-          <div
-            className={cn(
-              "relative flex items-center justify-center md:w-3/5 h-full",
-              // No order classes needed here, parent flex-direction handles it
-            )}
-          >
+          {/* Image & Description */}
+          <div className="relative flex flex-col items-center justify-center md:w-3/5 h-full">
             <Image
-              src={currentContent.whyCtrlsS.points[activeReasonIndex].mainFeatureImage || "/placeholder.svg"}
-              width={600} // Example intrinsic width
-              height={400} // Example intrinsic height
+              src={
+                currentContent.whyCtrlsS.points[activeReasonIndex]
+                  .mainFeatureImage || "/placeholder.svg"
+              }
+              width={400}
+              height={400}
               alt={currentContent.whyCtrlsS.points[activeReasonIndex].shortTitle}
-              className="w-full h-auto object-contain max-h-[500px] rounded-lg shadow-lg" // Scale and fit
+              className="w-full w-[400px] h-[400px] object-cover rounded-lg shadow-lg"
             />
-          </div>
-        </div>
-
-        {/* Mobile Layout (< 768px) - Carousel */}
-        <div className="md:hidden mt-12 flex flex-col items-center">
-          {/* Carousel Slide */}
-          <div className="w-full flex flex-col items-center text-center">
-            <Image
-              src={currentContent.whyCtrlsS.points[currentSlideIndex].mainFeatureImage || "/placeholder.svg"}
-              width={600} // Example intrinsic width
-              height={400} // Example intrinsic height
-              alt={currentContent.whyCtrlsS.points[currentSlideIndex].shortTitle}
-              className="w-full h-auto object-contain max-h-[300px] rounded-lg shadow-lg mb-6" // Scale and fit
-            />
-            <h3 className="font-montserrat text-2xl font-bold text-purple mb-2">
-              {currentContent.whyCtrlsS.points[currentSlideIndex].shortTitle}
-            </h3>
-            <p className="text-gray-700 text-base px-4">
-              {currentContent.whyCtrlsS.points[currentSlideIndex].description}
+            <p className="mt-4 text-neutral-grey text-base font-normal text-center px-4 leading-relaxed">
+              {currentContent.whyCtrlsS.points[activeReasonIndex].description}
             </p>
           </div>
-
-          {/* Dot Indicators */}
-          <div className="flex justify-center gap-2 mt-8">
-            {currentContent.whyCtrlsS.points.map((_, index) => (
-              <button
-                key={index}
-                className={cn(
-                  "h-3 w-3 rounded-full transition-colors duration-300",
-                  index === currentSlideIndex ? "bg-blueGradientEnd" : "bg-gray-300",
-                )}
-                onClick={() => setCurrentSlideIndex(index)}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
         </div>
+
+        {/* Mobile Layout */}
+<div className="md:hidden mt-12 flex flex-col items-center min-h-[600px]">
+  {/* Image with swapped arrows */}
+  <div className="relative flex items-center justify-center w-full max-w-[300px]">
+    {/* Right Arrow */}
+    <button
+      className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-black/60 text-white shadow-md z-10 hover:bg-black/80 transition"
+      onClick={() =>
+        setCurrentSlideIndex(
+          (prev) => (prev + 1) % currentContent.whyCtrlsS.points.length
+        )
+      }
+      aria-label="Next slide"
+    >
+      ›
+    </button>
+
+    {/* Image */}
+    <Image
+      src={
+        currentContent.whyCtrlsS.points[currentSlideIndex]
+          .mainFeatureImage || "/placeholder.svg"
+      }
+      width={250}
+      height={250}
+      alt={currentContent.whyCtrlsS.points[currentSlideIndex].shortTitle}
+      className="w-full h-auto object-contain rounded-lg shadow-lg"
+    />
+
+    {/* Left Arrow */}
+    <button
+      className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-black/60 text-white shadow-md z-10 hover:bg-black/80 transition"
+      onClick={() =>
+        setCurrentSlideIndex(
+          (prev) =>
+            (prev - 1 + currentContent.whyCtrlsS.points.length) %
+            currentContent.whyCtrlsS.points.length
+        )
+      }
+      aria-label="Previous slide"
+    >
+      ‹
+    </button>
+  </div>
+
+  {/* Title */}
+  <h3 className="font-inter text-2xl font-bold text-neutral-dark text-center mb-2 mt-4 min-h-[3rem] flex items-center">
+    {currentContent.whyCtrlsS.points[currentSlideIndex].shortTitle}
+  </h3>
+
+  {/* Description */}
+  <p className="text-neutral-grey text-base font-normal px-4 leading-relaxed min-h-[6rem] flex items-center">
+    {currentContent.whyCtrlsS.points[currentSlideIndex].description}
+  </p>
+
+  {/* Dots */}
+  <div className="flex justify-center gap-2 mt-8">
+    {currentContent.whyCtrlsS.points.map((_, index) => (
+      <button
+        key={index}
+        className={cn(
+          "h-3 w-3 rounded-full transition-colors duration-300",
+          index === currentSlideIndex
+            ? "bg-blueGradientEnd"
+            : "bg-gray-300"
+        )}
+        onClick={() => setCurrentSlideIndex(index)}
+        aria-label={`Go to slide ${index + 1}`}
+      />
+    ))}
+  </div>
+</div>
+
       </div>
     </section>
-  )
+  );
 }

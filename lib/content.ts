@@ -5,7 +5,7 @@ export const content = {
       navLinks: [
         { name: "Home", href: "/#hero" }, // Updated to hash link
         { name: "Why CTRLS-S", href: "/#why-ctrls-s" }, // Updated to hash link
-        { name: "Roadmap", href: "/#roadmap" }, // Updated to hash link
+        { name: "Learning Path", href: "/#roadmap" }, // Updated to hash link
         { name: "Certificate", href: "/#certificate" }, // Updated to hash link
         { name: "Contact", href: "/contact" },
         { name: "Login", href: "/auth/login" }, // Added Login link
@@ -14,101 +14,105 @@ export const content = {
     },
     hero: {
       headline: "We build thinkers, not just coders.",
-      subtext:
-        "CTRLS-S is a youth-focused tech education program that teaches problem-solving mindset, soft skills, and digital literacy through a structured multi-level journey. We empower young minds to think critically, solve creatively, and build confidently for the future.",
-      cta: "Discover Our Program",
+      subtext: [
+        // Changed to array of objects
+        {
+          icon: "Brain",
+          text: "Building mindset with confidence, curiosity, and resilience.",
+          highlight: "Building mindset",
+        },
+        {
+          icon: "MessageCircle",
+          text: "Training how to act through communication, problem-solving, and smart thinking.",
+          highlight: "Training how to act",
+        },
+        {
+          icon: "Wrench",
+          text: "Using tech as a tool to shape thinkers for engineering, medicine, or any future path.",
+          highlight: "Using tech as a tool",
+        },
+      ],
+      cta: "Explore the Journey",
       imageAlt: "Modern tech illustration with robot and circuit brain",
     },
     whyCtrlsS: {
-      title: "Why Choose CTRLS-S?",
+      title: "Why Choose CTRL-S?",
       points: [
         {
           icon: "Brain",
           shortTitle: "Thinkers, Not Just Coders",
           description:
-            "We don’t just teach your child how to code — we teach them how to think. From breaking down complex problems to building logical solutions, this mindset empowers them far beyond the screen. It’s the real skill that shapes future creators, leaders, and innovators.",
-          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Thinkers", // New property
+            "We teach code as the powerful language of creation. By mastering it, students don't just build projects; they build a creative mindset to solve any problem.",
+          mainFeatureImage: "/", // New property
         },
         {
           icon: "Users",
-          shortTitle: "Soft Skills That Power Every Future",
+          shortTitle: "Soft Skills Build Their Future",
           description:
-            "In a world full of information, your child learns how to find what matters — and explain it clearly. We develop their communication, critical thinking, and smart research skills — the qualities that make a student stand out anywhere, from school to real life.",
+            "Beyond the clicks, there's a new way of thinking. This course builds the essential Soft Skills like structured problem-solving and resilience—that are critical for success on any future path.",
           mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Soft Skills", // New property
         },
         {
           icon: "Laptop",
-          shortTitle: "Early Tech Skills, Real Impact",
+          shortTitle: "An Early Path to Success",
           description:
-            "Your child deserves more than just screen time — they deserve to understand how technology works. We teach foundational digital skills like logic, coding, and structured thinking in a way that’s fun, practical, and age-appropriate — giving them a true head start.",
+            "Imagine your teen entering university already mastering the skills others are just beginning to learn. That is the powerful advantage we provide. We introduce practical, high-level skills years ahead of schedule, building true confidence for their academic and professional future.",
           mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Early Tech", // New property
         },
         {
           icon: "Map",
-          shortTitle: "A Clear, Guided Learning Journey",
+          shortTitle: "A Clear Journey to Confidence",
           description:
-            "No guesswork, no randomness. Our step-by-step curriculum takes your child from digital basics to coding confidently. With each level, they build independence, creativity, and confidence — all through real-world projects and guided support.",
+            "No random lessons, no confusing path. We provide a structured roadmap where each lesson builds logically on the last. This clarity gives students the confidence to master new skills because they always know what’s next.",
           mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Learning Journey", // New property
         },
         {
           icon: "Heart",
-          shortTitle: "A Learning Community That Feels Like Family",
+          shortTitle: "Your Success is Our Story",
           description:
-            "We treat your child’s growth like our own. Through mentorship, care, and ongoing connection, we create a space where students feel safe, seen, and supported — so learning becomes a journey, not just a subject.",
+            "To us, your teen is not just another student. We are personally invested in their journey, providing dedicated guidance and steadfast support they need to thrive. We don’t just build courses; we build relationships.",
           mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Community", // New property
         },
       ],
     },
     roadmap: {
-      title: "Your Learning Path: ICT Level",
+      title: "Level 1: Digital Foundations – ICT Level",
       description:
-        "Our foundational ICT level is split into two comprehensive sides: Practical skills in essential Microsoft Applications and Theoretical knowledge covering computer systems, networks, safety, and more.",
+        "More than a course, this is the essential foundation for the modern world. We build true digital fluency, turning students into masters of the essential applications and core tech knowledge they need to excel with confidence in school and beyond.",
       level1: {
         headline: "The ICT Level: Practical & Theoretical Foundations",
         description:
           "Our foundational ICT level is split into two comprehensive sides: Practical skills in essential Microsoft Applications and Theoretical knowledge covering computer systems, networks, safety, and more.",
         modules: [
           {
-            title: "Module 1: Think Like a Problem-Solver",
-            icon: "Laptop",
-            illustration: "/placeholder.svg?height=120&width=200",
-            duration: "3 Months (12 Sessions)",
-            description:
-              "The adventure begins here! Through interactive games and brain-teasing puzzles, your child will learn the fundamentals of computational thinking. They'll master sequencing and pattern recognition to break down big problems into small, manageable steps—the secret foundation of all coding.",
+            title: "Master Microsoft Office & Adapt",
+            illustration: "/icons/dapt-icon.svg", // Placeholder for new image
+            description: "Work confidently with Office tools and easily learn new technology",
           },
           {
-            title: "Module 2: Bring Ideas to Life with Code",
-            icon: "Palette",
-            illustration: "/placeholder.svg?height=120&width=200",
-            duration: "6 Months (12 Sessions)",
-            description:
-              "With the basics of logic mastered, students jump into visual programming. Using intuitive drag-and-drop code blocks, they'll learn core coding concepts like loops and variables to build their first simple programs, interactive stories, and characters.",
+            title: "Understand Core Tech",
+            illustration: "/icons/tech.svg", // Placeholder for new image
+            description: "Know how hardware, software, and networks really work",
           },
           {
-            title: "Module 3: Animate Your World",
-            icon: "Code",
-            illustration: "/placeholder.svg?height=120&width=200",
-            duration: "9 Months (12 Sessions)",
-            description:
-              "Time to make things move! In this module, students apply their new coding skills to the exciting world of digital animation. They will learn to control movement, timing, and interactions to create their own animated scenes, transforming static images into lively creations.",
+            title: "Stay Safe & Smart Online",
+            illustration: "/icons/stay-safe.svg", // Placeholder for new image
+            description: "Protect your data and use the internet responsibly",
           },
           {
-            title: "Module 4: Build Your Own Game",
-            icon: "Rocket",
-            illustration: "/placeholder.svg?height=120&width=200",
-            duration: "12 Months (12 Sessions)",
-            description:
-              "The final challenge! Students combine everything they've learned—logic, coding, and animation—to design and build their very own simple, interactive game. This capstone project solidifies their confidence and gives them a complete, playable creation they can proudly share.",
+            title: "Use Tech in Real Life",
+            illustration: "/icons/tech-in-life.svg", // Placeholder for new image
+            description: "Apply ICT skills to everyday situations like banking, shopping, and GPS",
           },
         ],
       },
     },
     certificate: {
-      title: "Official Recognition for Future Innovators.",
+      title: "Proof of Their Brilliance",
       mainText:
-        "Every CTRL-S graduate earns an official certificate validating their skills in coding and critical thinking. It’s a verified credential, ready to be shared for school applications and future opportunities.",
+        "This certificate is the key that unlocks their next chapter. It's official recognition designed to break down barriers and open new doors.",
       courseDetail: "Successfully completed ICT Course – July 2025",
-      bilingualNote: "Certificates are available in both English and Arabic.",
+      bilingualNote: "", // Removed content
       imageAlt: "CTRLS-S Certificate Design",
       certificateImage: "/placeholder.svg?height=400&width=600",
     },
@@ -122,8 +126,9 @@ export const content = {
         submit: "Send Message",
       },
       info: {
-        email: "info@ctrls-s.com",
-        phone: "+966 50 123 4567",
+        email: "ctrlscourses@gmail.com",
+        phone: "+201111123127", // Updated phone number
+        whatsappPhone: "+201111123127",
       },
       social: {
         whatsapp: "WhatsApp",
@@ -173,14 +178,116 @@ export const content = {
         theoreticalContent: "Theoretical Content",
         practicalContent: "Practical Content",
         placeholderText: "Content will appear here.",
+        continueWatching: "Continue Watching",
+        noVideosWatched: "No videos watched yet. Start exploring!",
+        playerPageTitle: "Lecture Player",
+        upNext: "Up Next",
       },
       adminDashboard: {
         title: "Admin Dashboard",
         signOut: "Sign Out",
-        description: "This is where admin functionalities will be implemented.",
-        features: ["Manage Students", "Manage Course Content", "Assign Content to Students"],
+        tabs: {
+          dashboard: "Dashboard",
+          contentManagement: "Content Management",
+          studentManagement: "Student Management",
+        },
+        stats: {
+          totalStudents: "Total Students",
+          totalVideos: "Total Videos",
+          newSignups30Days: "New Sign-ups (30 Days)",
+        },
+        contentManagement: {
+          addLecture: "+ Add New Lecture",
+          editLecture: "Edit Lecture",
+          addLectureDescription: "Fill in the details to add a new video lecture.",
+          editLectureDescription: "Update the details for this video lecture.",
+          table: {
+            thumbnail: "Thumbnail",
+            lectureTitle: "Lecture Title",
+            category: "Category",
+            dateAdded: "Date Added",
+            actions: "Actions",
+          },
+          form: {
+            lectureTitle: "Lecture Title",
+            description: "Description",
+            category: "Category",
+            thumbnailImage: "Thumbnail Image URL",
+            videoSourceUrl: "Video Source URL",
+            saveLecture: "Save Lecture",
+            addLecture: "Add Lecture",
+            theoretical: "Theoretical",
+            practical: "Practical",
+          },
+        },
+        studentManagement: {
+          createStudentAccount: "+ Create Student Account",
+          createStudentAccountDescription: "Fill in the details to create a new student account.",
+          table: {
+            studentName: "Student Name",
+            emailAddress: "Email Address",
+            dateRegistered: "Date Registered",
+          },
+          form: {
+            fullName: "Full Name",
+            emailAddress: "Email Address",
+            password: "Password",
+            createAccount: "Create Account",
+          },
+        },
       },
     },
+    lectures: [
+      {
+        id: "vid1",
+        title: "Introduction to Computational Thinking",
+        description: "Learn the basics of problem-solving like a computer scientist.",
+        thumbnailImage: "/placeholder.svg?height=150&width=250&text=Comp Thinking",
+        videoSourceUrl: "https://www.w3schools.com/html/mov_bbb.mp4", // Example video URL
+        category: "Theoretical",
+        progress: 75, // Added for demo
+      },
+      {
+        id: "vid2",
+        title: "Variables and Data Types",
+        description: "Understand how to store and manipulate data in programming.",
+        thumbnailImage: "/placeholder.svg?height=150&width=250&text=Variables",
+        videoSourceUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+        category: "Theoretical",
+      },
+      {
+        id: "vid3",
+        title: "Loops and Conditionals",
+        description: "Master the fundamental control structures in coding.",
+        thumbnailImage: "/placeholder.svg?height=150&width=250&text=Loops",
+        videoSourceUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+        category: "Theoretical",
+      },
+      {
+        id: "vid4",
+        title: "Building Your First Scratch Project",
+        description: "Hands-on session to create an interactive story in Scratch.",
+        thumbnailImage: "/placeholder.svg?height=150&width=250&text=Scratch Project",
+        videoSourceUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+        category: "Practical",
+      },
+      {
+        id: "vid5",
+        title: "Debugging Your Code",
+        description: "Learn essential techniques to find and fix errors in your programs.",
+        thumbnailImage: "/placeholder.svg?height=150&width=250&text=Debugging",
+        videoSourceUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+        category: "Practical",
+      },
+      {
+        id: "vid6",
+        title: "Advanced Animation Techniques",
+        description: "Explore more complex animation principles and tools.",
+        thumbnailImage: "/placeholder.svg?height=150&width=250&text=Animation",
+        videoSourceUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+        category: "Practical",
+      },
+    ] as VideoLecture[],
   },
   ar: {
     header: {
@@ -188,7 +295,7 @@ export const content = {
       navLinks: [
         { name: "الرئيسية", href: "/#hero" }, // Updated to hash link
         { name: "لماذا CTRLS-S", href: "/#why-ctrls-s" }, // Updated to hash link
-        { name: "خارطة الطريق", href: "/#roadmap" }, // Updated to hash link
+        { name: "مسار التعلم", href: "/#roadmap" }, // Updated to hash link
         { name: "الشهادة", href: "/#certificate" }, // Updated to hash link
         { name: "اتصل بنا", href: "/contact" },
         { name: "تسجيل الدخول", href: "/auth/login" }, // Added Login link
@@ -196,10 +303,22 @@ export const content = {
       cta: "سجّل الآن",
     },
     hero: {
-      headline: "نحن نبني مفكرين، لا مجرد مبرمجين.",
-      subtext:
-        "CTRLS-S هو برنامج تعليمي تقني موجه للشباب يهدف إلى تعليم عقلية حل المشكلات، المهارات الشخصية، ومحو الأمية الرقمية من خلال رحلة منظمة متعددة المستويات. نحن نمكّن العقول الشابة من التفكير النقدي، الحل الإبداعي، والبناء بثقة للمستقبل.",
-      cta: "اكتشف برنامجنا",
+      headline: "نحن نبني مفكرين، وليس مجرد مبرمجين.",
+      subtext: [
+        // Changed to array of objects
+        { icon: "Brain", text: "بناء عقلية واثقة، فضولية، ومرنة.", highlight: "بناء عقلية" },
+        {
+          icon: "MessageCircle",
+          text: "التدريب على كيفية التصرف من خلال التواصل، حل المشكلات، والتفكير الذكي.",
+          highlight: "التدريب على كيفية التصرف",
+        },
+        {
+          icon: "Wrench",
+          text: "استخدام التكنولوجيا كأداة لتشكيل المفكرين للهندسة، الطب، أو أي مسار مستقبلي.",
+          highlight: "استخدام التكنولوجيا كأداة",
+        },
+      ],
+      cta: "اكتشف الرحلة",
       imageAlt: "رسم توضيحي تقني حديث مع روبوت ودماغ دائرة كهربائية",
     },
     whyCtrlsS: {
@@ -207,37 +326,37 @@ export const content = {
       points: [
         {
           icon: "Brain",
-          shortTitle: "نصنع مفكرين، مش بس مبرمجين",
+          shortTitle: "نحن نبني مفكرين، وليس مجرد مبرمجين.",
           description:
-            "نحن لا نُعلِّم الأطفال البرمجة فقط، بل نُعلِّمهم كيف يفكرون بشكل منطقي ومنهجي. نُساعدهم على تحليل المشكلات وبناء حلول حقيقية — مهارة تتجاوز الشاشة، وتشكّل شخصية قيادية ومبدعة في المستقبل.",
+            "في داخل كل طالب، يوجد مبدع ومفكر ينتظر الفرصة. مهمتنا هي إيقاظ هذا الإبداع. البرمجة هي الأداة التي يتعلمون بها كيف يحولون الفوضى إلى نظام، والأفكار إلى واقع ملموس، والتحديات إلى انتصارات يفتخرون بها.",
           mainFeatureImage: "/placeholder.svg?height=400&width=600&text=مفكرين", // New property
         },
         {
           icon: "Users",
-          shortTitle: "مهارات ناعمة تصنع فرقًا حقيقيًا",
+          shortTitle: "مهارات شخصية تبني مستقبلهم",
           description:
-            "في عالم مليء بالمعلومات، نُدرّب الطفل على كيفية البحث بذكاء، واختيار المعلومة المفيدة، والتعبير عنها بوضوح. مهارات التفكير الناقد، التواصل الفعّال، والتحليل المنطقي تجعل منه طالبًا واثقًا في المدرسة وخارجها.",
+            "المستقبل المشرق لا يُبنى بالمهارات التقنية وحدها. لهذا السبب، ندمج في كل مشروع المهارات الأساسية للنجاح، مثل التفكير المنطقي والمرونة في حل المشكلات، لنُعدّهم للنجاح بثقة في أي مسار يختارونه.",
           mainFeatureImage: "/placeholder.svg?height=400&width=600&text=مهارات ناعمة", // New property
         },
         {
           icon: "Laptop",
-          shortTitle: "مهارات تقنية مبكرة بتأثير حقيقي",
+          shortTitle: "مسار مبكر نحو النجاح",
           description:
-            "طفلك يستحق أكثر من مجرد التفاعل مع الشاشات — يستحق أن يفهم كيف تُبنى التكنولوجيا من الداخل. نُقدّم مهارات البرمجة، التفكير المنطقي، والمهارات الرقمية الأساسية بطريقة ممتعة وعملية ومناسبة لعمره.",
+            "تخيّل ابنك يدخل الجامعة وهو يتقن مهارات لا يزال الآخرون في بداية تعلّمها. هذه هي القوة الحقيقية التي نقدمها. نحن نُعلّم مهارات عملية ومتقدمة قبل أوانها، لنمنحهم ثقة أكاديمية ومهنية تسبق عمرهم وتفتح لهم أبواب المستقبل.",
           mainFeatureImage: "/placeholder.svg?height=400&width=600&text=مهارات تقنية", // New property
         },
         {
           icon: "Map",
-          shortTitle: "رحلة تعليمية واضحة وموجهة",
+          shortTitle: "رحلة واضحة تبني الثقة",
           description:
-            "لا عشوائية ولا ارتباك. محتوى مُنظم ينقل الطفل خطوة بخطوة من الأساسيات إلى البرمجة بثقة. مع كل مستوى، تتطور لديه مهارات الاستقلال، الإبداع، والثقة بالنفس من خلال مشاريع واقعية وتوجيه مستمر.",
+            "لا دروس عشوائية ولا مسارات مربكة. نحن نقدم خارطة طريق تعليمية منظمة، حيث تبني كل خطوة على السابقة بشكل مدروس. هذا التنظيم يمنح الطالب وضوحًا وثقة، لأنه دائمًا يعرف ما ينتظره، ويشعر بأنه يتقدم بثبات نحو إتقان المهارات الجديدة.",
           mainFeatureImage: "/placeholder.svg?height=400&width=600&text=رحلة تعليمية", // New property
         },
         {
           icon: "Heart",
-          shortTitle: "مجتمع تعليمي بروح العائلة",
+          shortTitle: "نجاحهم هو قصتنا",
           description:
-            "نؤمن أن رحلة الطفل التعليمية تبدأ من الثقة والدعم. نُعامل كل طالب كأنه منّا — برعاية، تواصل، وتوجيه حقيقي يجعل من التعلم تجربة مليئة بالاهتمام والنجاح.",
+            "نحن لا نرى الطالب كمجرد متلقٍّ للمعلومة، بل كجزء من قصة نجاح أكبر. من خلال نقل خبراتنا العملية وتجاربنا الحقيقية، نمنحهم الأدوات التي يحتاجونها للتميّز. نحن لا نقدم محتوى نظريًا فقط، بل نشاركهم ما تعلمناه من الواقع، ليكونوا مستعدين لأي تحدٍّ ينتظرهم.",
           mainFeatureImage: "/placeholder.svg?height=400&width=600&text=مجتمع تعليمي", // New property
         },
       ],
@@ -245,53 +364,50 @@ export const content = {
     roadmap: {
       title: "مسار التعلم الخاص بك: مستوى تكنولوجيا المعلومات والاتصالات",
       description:
-        "ينقسم مستوى تكنولوجيا المعلومات والاتصالات التأسيسي لدينا إلى جانبين شاملين: المهارات العملية في تطبيقات Microsoft الأساسية والمعرفة النظرية التي تغطي أنظمة الكمبيوتر والشبكات والسلامة والمزيد.",
+        "أكثر من مجرد دورة، هذا هو الأساس الضروري للعالم الحديث. نحن نبني إتقانًا رقميًا حقيقيًا، محولين الطلاب إلى خبراء في التطبيقات الأساسية والمعرفة التقنية الأساسية التي يحتاجونها للتفوق بثقة في المدرسة وخارجها.",
       level1: {
         headline: "مستوى تكنولوجيا المعلومات والاتصالات: الأسس العملية والنظرية",
         description:
           "ينقسم مستوى تكنولوجيا المعلومات والاتصالات التأسيسي لدينا إلى جانبين شاملين: المهارات العملية في تطبيقات Microsoft الأساسية والمعرفة النظرية التي تغطي أنظمة الكمبيوتر والشبكات والسلامة والمزيد.",
         modules: [
           {
-            title: "Module 1: Think Like a Problem-Solver",
-            icon: "Laptop",
-            illustration: "/placeholder.svg?height=120&width=200",
+            title: "إتقان مايكروسوفت أوفيس والتكيف",
+            icon: "Laptop", // Icon property remains
+            illustration: "/icons/dapt-icon.svg", // Placeholder for new image
             duration: "3 شهور (12 حصة)",
-            description:
-              "The adventure begins here! Through interactive games and brain-teasing puzzles, your child will learn the fundamentals of computational thinking. They'll master sequencing and pattern recognition to break down big problems into small, manageable steps—the secret foundation of all coding.",
+            description: "العمل بثقة مع أدوات أوفيس وتعلم التكنولوجيا الجديدة بسهولة",
           },
           {
-            title: "Module 2: Bring Ideas to Life with Code",
-            icon: "Palette",
-            illustration: "/placeholder.svg?height=120&width=200",
+            title: "فهم التكنولوجيا الأساسية",
+            icon: "Palette", // Icon property remains
+            illustration: "/icons/tech.svg", // Placeholder for new image
             duration: "6 شهور (12 حصة)",
-            description:
-              "With the basics of logic mastered, students jump into visual programming. Using intuitive drag-and-drop code blocks, they'll learn core coding concepts like loops and variables to build their first simple programs, interactive stories, and characters.",
+            description: "معرفة كيفية عمل الأجهزة والبرامج والشبكات حقًا",
           },
           {
-            title: "Module 3: Animate Your World",
-            icon: "Code",
-            illustration: "/placeholder.svg?height=120&width=200",
+            title: "البقاء آمنًا وذكيًا عبر الإنترنت",
+            icon: "Code", // Icon property remains
+            illustration: "/icons/stay-safe.svg", // Placeholder for new image
             duration: "9 شهور (12 حصة)",
-            description:
-              "Time to make things move! In this module, students apply their new coding skills to the exciting world of digital animation. They will learn to control movement, timing, and interactions to create their own animated scenes, transforming static images into lively creations.",
+            description: "حماية بياناتك واستخدام الإنترنت بمسؤولية",
           },
           {
-            title: "Module 4: Build Your Own Game",
-            icon: "Rocket",
-            illustration: "/placeholder.svg?height=120&width=200",
+            title: "استخدام التكنولوجيا في الحياة الواقعية",
+            icon: "Rocket", // Icon property remains
+            illustration: "/icons/tech-in-life.svg", // Placeholder for new image
             duration: "12 شهر (12 حصة)",
-            description:
-              "The final challenge! Students combine everything they've learned—logic, coding, and animation—to design and build their very own simple, interactive game. This capstone project solidifies their confidence and gives them a complete, playable creation they can proudly share.",
+         description:
+  "تطبيق مهارات تكنولوجيا المعلومات والاتصالات في الحياة اليومية",
           },
         ],
       },
     },
     certificate: {
-      title: "اعتماد رسمي لمبتكري المستقبل.",
+      title: "شهادة تثبت تميّزهم",
       mainText:
-        "يحصل كل خريج من CTRL-S على شهادة رسمية توثّق مهاراته في البرمجة والتفكير الناقد. إنها وثيقة معتمدة، جاهزة للمشاركة عند التقديم للمدارس والفرص المستقبلية.",
+        "هذه الشهادة ليست مجرد ورقة، بل مفتاح حقيقي لفرص جديدة. إنها إثبات رسمي لمهاراتهم، تُكسر بها الحواجز وتُفتح أمامهم الأبواب الأكاديمية والمهنية، وتمنحهم الثقة في بداية فصل جديد من رحلتهم.",
       courseDetail: "أكمل بنجاح دورة تكنولوجيا المعلومات والاتصالات – يوليو 2025",
-      bilingualNote: "الشهادات متوفرة باللغتين الإنجليزية والعربية.",
+      bilingualNote: "", // Removed content
       imageAlt: "تصميم شهادة CTRLS-S",
       certificateImage: "/placeholder.svg?height=400&width=600",
     },
@@ -305,8 +421,9 @@ export const content = {
         submit: "إرسال الرسالة",
       },
       info: {
-        email: "info@ctrls-s.com",
-        phone: "+966 50 123 4567",
+        email: "ctrlscourses@gmail.com",
+        phone: "+201111123127", // Updated phone number
+        whatsappPhone: "+201111123127",
       },
       social: {
         whatsapp: "واتساب",
@@ -356,13 +473,126 @@ export const content = {
         theoreticalContent: "المحتوى النظري",
         practicalContent: "المحتوى العملي",
         placeholderText: "سيظهر المحتوى هنا.",
+        continueWatching: "متابعة المشاهدة",
+        noVideosWatched: "لم تتم مشاهدة أي مقاطع فيديو بعد. ابدأ الاستكشاف!",
+        playerPageTitle: "مشغل المحاضرات",
+        upNext: "التالي",
       },
       adminDashboard: {
         title: "لوحة تحكم المسؤول",
         signOut: "تسجيل الخروج",
-        description: "هنا سيتم تنفيذ وظائف المسؤول.",
-        features: ["إدارة الطلاب", "إدارة محتوى الدورة", "تعيين المحتوى للطلاب"],
+        tabs: {
+          dashboard: "لوحة القيادة",
+          contentManagement: "إدارة المحتوى",
+          studentManagement: "إدارة الطلاب",
+        },
+        stats: {
+          totalStudents: "إجمالي الطلاب",
+          totalVideos: "إجمالي الفيديوهات",
+          newSignups30Days: "تسجيلات جديدة (30 يومًا)",
+        },
+        contentManagement: {
+          addLecture: "+ إضافة محاضرة جديدة",
+          editLecture: "تعديل المحاضرة",
+          addLectureDescription: "املأ التفاصيل لإضافة محاضرة فيديو جديدة.",
+          editLectureDescription: "تحديث تفاصيل محاضرة الفيديو هذه.",
+          table: {
+            thumbnail: "صورة مصغرة",
+            lectureTitle: "عنوان المحاضرة",
+            category: "الفئة",
+            dateAdded: "تاريخ الإضافة",
+            actions: "الإجراءات",
+          },
+          form: {
+            lectureTitle: "عنوان المحاضرة",
+            description: "الوصف",
+            category: "الفئة",
+            thumbnailImage: "رابط الصورة المصغرة",
+            videoSourceUrl: "رابط مصدر الفيديو",
+            saveLecture: "حفظ المحاضرة",
+            addLecture: "إضافة محاضرة",
+            theoretical: "نظري",
+            practical: "عملي",
+          },
+        },
+        studentManagement: {
+          createStudentAccount: "+ إنشاء حساب طالب",
+          createStudentAccountDescription: "املأ التفاصيل لإنشاء حساب طالب جديد.",
+          table: {
+            studentName: "اسم الطالب",
+            emailAddress: "عنوان البريد الإلكتروني",
+            dateRegistered: "تاريخ التسجيل",
+          },
+          form: {
+            fullName: "الاسم الكامل",
+            emailAddress: "عنوان البريد الإلكتروني",
+            password: "كلمة المرور",
+            createAccount: "إنشاء حساب",
+          },
+        },
       },
     },
+    lectures: [
+      {
+        id: "vid1",
+        title: "مقدمة في التفكير الحاسوبي",
+        description: "تعلم أساسيات حل المشكلات كعالم حاسوب.",
+        thumbnailImage: "/placeholder.svg?height=150&width=250&text=تفكير حاسوبي",
+        videoSourceUrl: "https://www.w3schools.com/html/mov_bbb.mp4", // Example video URL
+        category: "Theoretical",
+        progress: 75, // Added for demo
+      },
+      {
+        id: "vid2",
+        title: "المتغيرات وأنواع البيانات",
+        description: "فهم كيفية تخزين ومعالجة البيانات في البرمجة.",
+        thumbnailImage: "/placeholder.svg?height=150&width=250&text=المتغيرات",
+        videoSourceUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+        category: "Theoretical",
+      },
+      {
+        id: "vid3",
+        title: "الحلقات والشروط",
+        description: "إتقان هياكل التحكم الأساسية في البرمجة.",
+        thumbnailImage: "/placeholder.svg?height=150&width=250&text=الحلقات",
+        videoSourceUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+        category: "Theoretical",
+      },
+      {
+        id: "vid4",
+        title: "بناء مشروع سكراتش الأول",
+        description: "جلسة عملية لإنشاء قصة تفاعلية في سكراتش.",
+        thumbnailImage: "/placeholder.svg?height=150&width=250&text=مشروع سكراتش",
+        videoSourceUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+        category: "Practical",
+      },
+      {
+        id: "vid5",
+        title: "تصحيح الأخطاء في الكود الخاص بك",
+        description: "تعلم التقنيات الأساسية للعثور على الأخطاء وإصلاحها في برامجك.",
+        thumbnailImage: "/placeholder.svg?height=150&width=250&text=تصحيح الأخطاء",
+        videoSourceUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+        category: "Practical",
+      },
+      {
+        id: "vid6",
+        title: "تقنيات الرسوم المتحركة المتقدمة",
+        description: "استكشف مبادئ وأدوات الرسوم المتحركة الأكثر تعقيدًا.",
+        thumbnailImage: "/placeholder.svg?height=150&width=250&text=رسوم متحركة",
+        videoSourceUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+        category: "Practical",
+      },
+    ] as VideoLecture[],
   },
+}
+
+// Define the type for a single video lecture
+export type VideoLecture = {
+  id: string
+  title: string
+  description: string
+  thumbnailImage: string
+  videoSourceUrl: string
+  category: "Theoretical" | "Practical"
+  progress?: number // Added progress property
 }

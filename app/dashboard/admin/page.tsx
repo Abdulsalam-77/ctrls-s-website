@@ -1,48 +1,109 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import { signOut } from "@/app/auth/actions"
+"use client" // This page MUST be a client component to use hooks like useState and useEffect.
+
+import { createClient } from "@/lib/supabase/client" // Use the CLIENT-side Supabase client
+import { useRouter } from "next/navigation" // Use useRouter for client-side navigation
+import { signOutAdmin } from "@/app/dashboard/admin/actions"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useLanguage } from "@/components/language-context"
+import { useEffect, useState } from "react"
 
-export default async function AdminDashboardPage() {
-  const supabase = await createClient() // Await createClient()
+// Import the admin components
+import DashboardOverview from "@/components/admin/dashboard-overview"
+import ContentManagement from "@/components/admin/content-management"
+import StudentManagement from "@/components/admin/student-management"
 
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
-    redirect("/auth/login")
+export default function AdminDashboardPage() {
+  const { currentContent } = useLanguage()
+  const router = useRouter() // Use the router for client-side redirects
+
+  // --- FIX 1: ADD A LOADING STATE ---
+  // We will show a loading message until the security check is complete.
+  // This prevents the dashboard from flashing on the screen before the redirect.
+  const [isLoading, setIsLoading] = useState(true)
+  const [isAuthorized, setIsAuthorized] = useState(false)
+
+  // --- FIX 2: CORRECTED SECURITY CHECK INSIDE useEffect ---
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      // If no user is logged in, redirect immediately.
+      if (!user) {
+        router.push("/auth/login")
+        return // Stop execution
+      }
+
+      // If a user is logged in, check if they are an admin.
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single()
+
+      // If they are NOT an admin, redirect to the homepage.
+      if (error || !profile?.is_admin) {
+        router.push("/")
+        return // Stop execution
+      }
+
+      // If the checks pass, the user is authorized.
+      setIsAuthorized(true)
+      setIsLoading(false)
+    }
+    checkAuth()
+  }, [router])
+
+  // --- FIX 3: CONDITIONAL RENDERING ---
+  // Do not render the dashboard until the security check is complete and successful.
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[calc(100vh-64px)] items-center justify-center">
+        <p>Verifying access...</p>
+      </div>
+    )
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", data.user.id)
-    .single()
-
-  if (profileError || !profile?.is_admin) {
-    redirect("/auth/login")
+  if (!isAuthorized) {
+    // This is a fallback, the redirect should have already happened.
+    return null
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <h1 className="font-montserrat text-3xl font-extrabold text-purple">
-          {/* Using a placeholder for now, will add to content.ts later */}
-          Admin Dashboard
+          {currentContent.auth.adminDashboard.title}
         </h1>
-        <form action={signOut}>
+        <form action={signOutAdmin}>
           <Button variant="outline" className="bg-red-500 text-white hover:bg-red-600">
-            Sign Out
+            {currentContent.auth.adminDashboard.signOut}
           </Button>
         </form>
       </div>
 
-      <div className="mt-8">
-        <p className="text-gray-700">This is where admin functionalities will be implemented.</p>
-        <ul className="mt-4 list-disc pl-5 text-gray-600">
-          <li>Manage Students</li>
-          <li>Manage Course Content</li>
-          <li>Assign Content to Students</li>
-        </ul>
-      </div>
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="dashboard">{currentContent.auth.adminDashboard.tabs.dashboard}</TabsTrigger>
+          <TabsTrigger value="content-management">
+            {currentContent.auth.adminDashboard.tabs.contentManagement}
+          </TabsTrigger>
+          <TabsTrigger value="student-management">
+            {currentContent.auth.adminDashboard.tabs.studentManagement}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard" className="mt-6">
+          <DashboardOverview />
+        </TabsContent>
+        <TabsContent value="content-management" className="mt-6">
+          <ContentManagement />
+        </TabsContent>
+        <TabsContent value="student-management" className="mt-6">
+          <StudentManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
