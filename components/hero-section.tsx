@@ -21,15 +21,16 @@ export default function HeroSection() {
       <div
         className={cn(
           "container relative z-10 flex flex-col items-center gap-8 md:gap-16", // Base flex for mobile (column) and desktop (row)
-          isArabic ? "md:flex-row-reverse" : "md:flex-row", // Controls overall row direction for LTR/RTL
+          isArabic ? "md:flex-row-reverse" : "md:flex-row", // Controls overall row direction for LTR/RTL on desktop
           "h-full w-full", // Ensure container takes full height and width
         )}
       >
         {/* Text Content Column */}
         <div
           className={cn(
-            "flex w-full flex-col text-white md:w-1/2", // Base styles for text column
+            "flex w-full flex-col text-white md:w-1/2", // Base flex for text column
             "order-last", // Mobile: text is second (bottom)
+            "items-center text-center", // Default for mobile (centered text and items)
             isArabic
               ? "md:order-2 md:items-end md:text-right" // Desktop Arabic: text is right column, aligned right
               : "md:order-1 md:items-start md:text-left", // Desktop English: text is left column, aligned left
@@ -39,8 +40,14 @@ export default function HeroSection() {
             {currentContent.hero.headline}
           </h1>
           <p className="mt-4 text-lg md:text-xl">{currentContent.hero.subtext}</p>
-          <Link href="/why-ctrls-s">
-            <Button className="mt-8 rounded-full bg-teal px-8 py-3 text-lg font-bold text-white shadow-lg transition-transform hover:scale-105 hover:bg-purple">
+          <Link
+            href="/why-ctrls-s"
+            className={cn(
+              "mt-8 block", // Make the Link a block element to allow text-align to work on its child (the Button)
+              isArabic ? "md:text-right" : "md:text-left", // Apply text alignment directly to the Link
+            )}
+          >
+            <Button className="rounded-full bg-teal px-8 py-3 text-lg font-bold text-white shadow-lg transition-transform hover:scale-105 hover:bg-purple">
               {currentContent.hero.cta}
             </Button>
           </Link>

@@ -1,17 +1,20 @@
 "use client"
 
 import { useLanguage } from "@/components/language-context"
-import { Brain, Users, Laptop, Map, Heart } from "lucide-react"
+import { Brain, Users, Laptop, Heart, Palette, Code, Rocket, Map } from "lucide-react" // Added Map as it was missing from previous imports
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { Button } from "@/components/ui/button" // Assuming Button is available from shadcn/ui
+import { Button } from "@/components/ui/button"
 
 const IconMap = {
   Brain: Brain,
   Users: Users,
   Laptop: Laptop,
-  Map: Map,
+  Palette: Palette,
+  Code: Code,
+  Rocket: Rocket,
+  Map: Map, // Ensure Map is included in the map
   Heart: Heart,
 }
 
@@ -57,15 +60,15 @@ export default function WhyCtrlsSSection() {
         <div
           className={cn(
             "hidden md:flex mt-12 gap-8 items-center", // Flex container for two columns
-            isArabic ? "md:flex-row-reverse" : "md:flex-row", // LTR/RTL column order
             "min-h-[500px]", // Minimum height to ensure content fits without scrolling
+            isArabic ? "md:flex-row-reverse" : "md:flex-row", // Explicit flex-direction for desktop LTR/RTL
           )}
         >
-          {/* Left Column: Reasons as clickable buttons (40% width) */}
+          {/* Reasons Column (Left for LTR, Right for RTL) */}
           <div
             className={cn(
               "flex flex-col gap-4 md:w-2/5",
-              isArabic && "text-right", // Align text right for Arabic
+              isArabic ? "text-right" : "text-left", // Text alignment based on language
             )}
           >
             {currentContent.whyCtrlsS.points.map((point, index) => {
@@ -76,11 +79,11 @@ export default function WhyCtrlsSSection() {
                   key={index}
                   variant="ghost"
                   className={cn(
-                    "flex items-center gap-4 p-4 rounded-lg shadow-md transition-all duration-300 h-auto justify-start",
+                    "flex items-center gap-4 p-4 rounded-lg shadow-md transition-all duration-300 h-auto",
                     isActive
                       ? "bg-gradient-to-r from-blueGradientStart to-blueGradientEnd text-white"
                       : "bg-gradient-to-br from-teal/10 to-purple/10 text-purple hover:scale-[1.02]",
-                    isArabic && "flex-row-reverse justify-end", // Reverse icon and text for Arabic, justify to end
+                    isArabic ? "flex-row-reverse justify-end" : "justify-start", // Reverse icon and text for Arabic, justify to end
                   )}
                   onClick={() => setActiveReasonIndex(index)}
                 >
@@ -93,8 +96,13 @@ export default function WhyCtrlsSSection() {
             })}
           </div>
 
-          {/* Right Column: Feature Image (60% width) */}
-          <div className="relative flex items-center justify-center md:w-3/5 h-full">
+          {/* Feature Image Column (Right for LTR, Left for RTL) */}
+          <div
+            className={cn(
+              "relative flex items-center justify-center md:w-3/5 h-full",
+              // No order classes needed here, parent flex-direction handles it
+            )}
+          >
             <Image
               src={currentContent.whyCtrlsS.points[activeReasonIndex].mainFeatureImage || "/placeholder.svg"}
               width={600} // Example intrinsic width
