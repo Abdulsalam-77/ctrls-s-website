@@ -43,28 +43,28 @@ export const content = {
           shortTitle: "Thinkers, Not Just Coders",
           description:
             "We teach code as the powerful language of creation. By mastering it, students don't just build projects; they build a creative mindset to solve any problem.",
-          mainFeatureImage: "/why-ctrl-s/Thinkers, Not Just Coders.png", // New property
+          mainFeatureImage: "/why-ctrl-s/Thinkers, Not Just Coders.PNG", // New property
         },
         {
           icon: "Users",
           shortTitle: "Soft Skills Build Their Future",
           description:
             "Beyond the clicks, there's a new way of thinking. This course builds the essential Soft Skills like structured problem-solving and resilience—that are critical for success on any future path.",
-          mainFeatureImage: "/why-ctrl-s/Soft Skills Build Their Future.png", // New property
+          mainFeatureImage: "/why-ctrl-s/Soft Skills Build Their Future.PNG", // New property
         },
         {
           icon: "Laptop",
           shortTitle: "An Early Path to Success",
           description:
             "Imagine your teen entering university already mastering the skills others are just beginning to learn. That is the powerful advantage we provide. We introduce practical, high-level skills years ahead of schedule, building true confidence for their academic and professional future.",
-          mainFeatureImage: "/why-ctrl-s/An Early Path to Success.png", // New property
+          mainFeatureImage: "/why-ctrl-s/An Early Path to Success.PNG", // New property
         },
         {
           icon: "Map",
           shortTitle: "A Clear Journey to Confidence",
           description:
             "No random lessons, no confusing path. We provide a structured roadmap where each lesson builds logically on the last. This clarity gives students the confidence to master new skills because they always know what’s next.",
-          mainFeatureImage: "/why-ctrl-s/A Roadmap You Can Trust.png", // New property
+          mainFeatureImage: "/why-ctrl-s/A Roadmap You Can Trust.PNG", // New property
         },
         {
           icon: "Heart",
@@ -336,21 +336,21 @@ export const content = {
           shortTitle: "مهارات شخصية تبني مستقبلهم",
           description:
             "المستقبل المشرق لا يُبنى بالمهارات التقنية وحدها. لهذا السبب، ندمج في كل مشروع المهارات الأساسية للنجاح، مثل التفكير المنطقي والمرونة في حل المشكلات، لنُعدّهم للنجاح بثقة في أي مسار يختارونه.",
-          mainFeatureImage: "/why-ctrl-s/Soft Skills Build Their Future.png", // New property
+          mainFeatureImage: "/why-ctrl-s/Soft Skills Build Their Future.PNG", // New property
         },
         {
           icon: "Laptop",
           shortTitle: "مسار مبكر نحو النجاح",
           description:
             "تخيّل ابنك يدخل الجامعة وهو يتقن مهارات لا يزال الآخرون في بداية تعلّمها. هذه هي القوة الحقيقية التي نقدمها. نحن نُعلّم مهارات عملية ومتقدمة قبل أوانها، لنمنحهم ثقة أكاديمية ومهنية تسبق عمرهم وتفتح لهم أبواب المستقبل.",
-          mainFeatureImage: "/why-ctrl-s/An Early Path to Success.png", // New property
+          mainFeatureImage: "/why-ctrl-s/An Early Path to Success.PNG", // New property
         },
         {
           icon: "Map",
           shortTitle: "رحلة واضحة تبني الثقة",
           description:
             "لا دروس عشوائية ولا مسارات مربكة. نحن نقدم خارطة طريق تعليمية منظمة، حيث تبني كل خطوة على السابقة بشكل مدروس. هذا التنظيم يمنح الطالب وضوحًا وثقة، لأنه دائمًا يعرف ما ينتظره، ويشعر بأنه يتقدم بثبات نحو إتقان المهارات الجديدة.",
-          mainFeatureImage: "/why-ctrl-s/A Roadmap You Can Trust without logo.png", // New property
+          mainFeatureImage: "/why-ctrl-s/A Roadmap You Can Trust without logo.PNG", // New property
         },
         {
           icon: "Heart",
