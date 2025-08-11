@@ -20,7 +20,10 @@ export default function RoadmapSection() {
   }, [currentContent]);
 
   return (
-    <section id="roadmap" className="relative overflow-hidden pt-16 pb-4 md:py-24">
+    <section
+      id="roadmap"
+      className="relative overflow-hidden pt-16 pb-4 md:py-24"
+    >
       <div className="container relative z-10 px-4 md:px-6">
         <h2 className="text-center font-inter text-3xl font-extrabold text-primary-purple md:text-4xl lg:text-[48px]">
           {currentContent.roadmap.title}
@@ -41,7 +44,9 @@ export default function RoadmapSection() {
                 style={{ height: maxHeight ? `${maxHeight}px` : "auto" }}
                 className="relative flex w-full max-w-[250px] flex-col rounded-2xl bg-cardGradient p-4 text-white shadow-lg"
               >
-                <div className="flex w-full justify-between">{/* Empty for future icons */}</div>
+                <div className="flex w-full justify-between">
+                  {/* Empty for future icons */}
+                </div>
                 <Image
                   src={module.illustration || "/placeholder.svg"}
                   width={200}
@@ -61,15 +66,18 @@ export default function RoadmapSection() {
         </div>
 
         {/* Mobile Timeline (Vertical) */}
-        <div className="relative mx-auto flex flex-col items-start py-4 md:hidden">
+        <div className="relative mx-auto flex flex-col items-center justify-center py-4 md:hidden">
           {currentContent.roadmap.level1.modules.map((module, index) => (
-            <div key={index} className="relative flex w-full items-center py-10">
+            <div
+              key={index}
+              className="relative flex w-full items-center py-10"
+            >
               <div
                 ref={(el) => {
                   cardsRef.current[index] = el;
                 }}
                 style={{ height: maxHeight ? `${maxHeight}px` : "auto" }}
-                className="ml-[calc(4px+10px+2.5rem)] w-full max-w-[250px] flex flex-col items-center justify-center rounded-2xl bg-cardGradient p-4 text-white shadow-lg"
+                className=" w-full max-w-[250px] flex mx-auto flex-col items-center justify-center rounded-2xl bg-cardGradient p-4 text-white shadow-lg"
               >
                 <div className="flex w-full justify-between">{/* Empty */}</div>
                 <Image

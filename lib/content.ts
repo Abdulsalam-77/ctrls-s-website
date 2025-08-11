@@ -1,10 +1,10 @@
 export const content = {
   en: {
     header: {
-      logoAlt: "CTRLS-S Logo",
+      logoAlt: "CTRL-S Logo",
       navLinks: [
         { name: "Home", href: "/#hero" }, // Updated to hash link
-        { name: "Why CTRLS-S", href: "/#why-ctrls-s" }, // Updated to hash link
+        { name: "Why CTRL-S", href: "/#why-ctrl-s" }, // Updated to hash link
         { name: "Learning Path", href: "/#roadmap" }, // Updated to hash link
         { name: "Certificate", href: "/#certificate" }, // Updated to hash link
         { name: "Contact", href: "/contact" },
@@ -43,35 +43,35 @@ export const content = {
           shortTitle: "Thinkers, Not Just Coders",
           description:
             "We teach code as the powerful language of creation. By mastering it, students don't just build projects; they build a creative mindset to solve any problem.",
-          mainFeatureImage: "/", // New property
+          mainFeatureImage: "/why-ctrl-s/Thinkers, Not Just Coders.png", // New property
         },
         {
           icon: "Users",
           shortTitle: "Soft Skills Build Their Future",
           description:
             "Beyond the clicks, there's a new way of thinking. This course builds the essential Soft Skills like structured problem-solving and resilience—that are critical for success on any future path.",
-          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Soft Skills", // New property
+          mainFeatureImage: "/why-ctrl-s/Soft Skills Build Their Future.png", // New property
         },
         {
           icon: "Laptop",
           shortTitle: "An Early Path to Success",
           description:
             "Imagine your teen entering university already mastering the skills others are just beginning to learn. That is the powerful advantage we provide. We introduce practical, high-level skills years ahead of schedule, building true confidence for their academic and professional future.",
-          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Early Tech", // New property
+          mainFeatureImage: "/why-ctrl-s/An Early Path to Success.png", // New property
         },
         {
           icon: "Map",
           shortTitle: "A Clear Journey to Confidence",
           description:
             "No random lessons, no confusing path. We provide a structured roadmap where each lesson builds logically on the last. This clarity gives students the confidence to master new skills because they always know what’s next.",
-          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Learning Journey", // New property
+          mainFeatureImage: "/why-ctrl-s/A Roadmap You Can Trust.png", // New property
         },
         {
           icon: "Heart",
           shortTitle: "Your Success is Our Story",
           description:
             "To us, your teen is not just another student. We are personally invested in their journey, providing dedicated guidance and steadfast support they need to thrive. We don’t just build courses; we build relationships.",
-          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=Community", // New property
+          mainFeatureImage: "/why-ctrl-s/A Learning Community That Feels Like Family.png", // New property
         },
       ],
     },
@@ -113,7 +113,7 @@ export const content = {
         "This certificate is the key that unlocks their next chapter. It's official recognition designed to break down barriers and open new doors.",
       courseDetail: "Successfully completed ICT Course – July 2025",
       bilingualNote: "", // Removed content
-      imageAlt: "CTRLS-S Certificate Design",
+      imageAlt: "CTRL-S Certificate Design",
       certificateImage: "/placeholder.svg?height=400&width=600",
     },
     contact: {
@@ -139,7 +139,7 @@ export const content = {
     footer: {
       quickLinks: "Quick Links",
       socialMedia: "Connect With Us",
-      copyright: "© 2025 CTRLS-S. All rights reserved.",
+      copyright: "© 2025 CTRL-S. All rights reserved.",
     },
     common: {
       language: "Language",
@@ -148,11 +148,11 @@ export const content = {
     },
     homeCta: {
       headline: "Ready to empower your child's future?",
-      subtext: "Join CTRLS-S and start their journey to becoming a confident thinker and builder.",
+      subtext: "Join CTRL-S and start their journey to becoming a confident thinker and builder.",
     },
     enrollment: {
       title: "Choose Your Plan",
-      description: "Select the perfect plan to start your child's journey with CTRLS-S.",
+      description: "Select the perfect plan to start your child's journey with CTRL-S.",
       plan: {
         name: "ICT Level 1 Program",
         price: "2500 EGP",
@@ -291,10 +291,10 @@ export const content = {
   },
   ar: {
     header: {
-      logoAlt: "شعار CTRLS-S",
+      logoAlt: "شعار CTRL-S",
       navLinks: [
         { name: "الرئيسية", href: "/#hero" }, // Updated to hash link
-        { name: "لماذا CTRLS-S", href: "/#why-ctrls-s" }, // Updated to hash link
+        { name: "لماذا CTRL-S", href: "/#why-ctrl-s" }, // Updated to hash link
         { name: "مسار التعلم", href: "/#roadmap" }, // Updated to hash link
         { name: "الشهادة", href: "/#certificate" }, // Updated to hash link
         { name: "اتصل بنا", href: "/contact" },
@@ -322,42 +322,42 @@ export const content = {
       imageAlt: "رسم توضيحي تقني حديث مع روبوت ودماغ دائرة كهربائية",
     },
     whyCtrlsS: {
-      title: "لماذا تختار CTRLS-S؟",
+      title: "لماذا تختار CTRL-S؟",
       points: [
         {
           icon: "Brain",
           shortTitle: "نحن نبني مفكرين، وليس مجرد مبرمجين.",
           description:
             "في داخل كل طالب، يوجد مبدع ومفكر ينتظر الفرصة. مهمتنا هي إيقاظ هذا الإبداع. البرمجة هي الأداة التي يتعلمون بها كيف يحولون الفوضى إلى نظام، والأفكار إلى واقع ملموس، والتحديات إلى انتصارات يفتخرون بها.",
-          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=مفكرين", // New property
+          mainFeatureImage: "/why-ctrl-s/Thinkers, Not Just Coders without logo.PNG", // New property
         },
         {
           icon: "Users",
           shortTitle: "مهارات شخصية تبني مستقبلهم",
           description:
             "المستقبل المشرق لا يُبنى بالمهارات التقنية وحدها. لهذا السبب، ندمج في كل مشروع المهارات الأساسية للنجاح، مثل التفكير المنطقي والمرونة في حل المشكلات، لنُعدّهم للنجاح بثقة في أي مسار يختارونه.",
-          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=مهارات ناعمة", // New property
+          mainFeatureImage: "/why-ctrl-s/Soft Skills Build Their Future.png", // New property
         },
         {
           icon: "Laptop",
           shortTitle: "مسار مبكر نحو النجاح",
           description:
             "تخيّل ابنك يدخل الجامعة وهو يتقن مهارات لا يزال الآخرون في بداية تعلّمها. هذه هي القوة الحقيقية التي نقدمها. نحن نُعلّم مهارات عملية ومتقدمة قبل أوانها، لنمنحهم ثقة أكاديمية ومهنية تسبق عمرهم وتفتح لهم أبواب المستقبل.",
-          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=مهارات تقنية", // New property
+          mainFeatureImage: "/why-ctrl-s/An Early Path to Success.png", // New property
         },
         {
           icon: "Map",
           shortTitle: "رحلة واضحة تبني الثقة",
           description:
             "لا دروس عشوائية ولا مسارات مربكة. نحن نقدم خارطة طريق تعليمية منظمة، حيث تبني كل خطوة على السابقة بشكل مدروس. هذا التنظيم يمنح الطالب وضوحًا وثقة، لأنه دائمًا يعرف ما ينتظره، ويشعر بأنه يتقدم بثبات نحو إتقان المهارات الجديدة.",
-          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=رحلة تعليمية", // New property
+          mainFeatureImage: "/why-ctrl-s/A Roadmap You Can Trust without logo.png", // New property
         },
         {
           icon: "Heart",
           shortTitle: "نجاحهم هو قصتنا",
           description:
             "نحن لا نرى الطالب كمجرد متلقٍّ للمعلومة، بل كجزء من قصة نجاح أكبر. من خلال نقل خبراتنا العملية وتجاربنا الحقيقية، نمنحهم الأدوات التي يحتاجونها للتميّز. نحن لا نقدم محتوى نظريًا فقط، بل نشاركهم ما تعلمناه من الواقع، ليكونوا مستعدين لأي تحدٍّ ينتظرهم.",
-          mainFeatureImage: "/placeholder.svg?height=400&width=600&text=مجتمع تعليمي", // New property
+          mainFeatureImage: "/why-ctrl-s/A Learning Community That Feels Like Family.png", // New property
         },
       ],
     },
@@ -408,7 +408,7 @@ export const content = {
         "هذه الشهادة ليست مجرد ورقة، بل مفتاح حقيقي لفرص جديدة. إنها إثبات رسمي لمهاراتهم، تُكسر بها الحواجز وتُفتح أمامهم الأبواب الأكاديمية والمهنية، وتمنحهم الثقة في بداية فصل جديد من رحلتهم.",
       courseDetail: "أكمل بنجاح دورة تكنولوجيا المعلومات والاتصالات – يوليو 2025",
       bilingualNote: "", // Removed content
-      imageAlt: "تصميم شهادة CTRLS-S",
+      imageAlt: "تصميم شهادة CTRL-S",
       certificateImage: "/placeholder.svg?height=400&width=600",
     },
     contact: {
@@ -434,7 +434,7 @@ export const content = {
     footer: {
       quickLinks: "روابط سريعة",
       socialMedia: "تواصل معنا",
-      copyright: "© 2025 CTRLS-S. جميع الحقوق محفوظة.",
+      copyright: "© 2025 CTRL-S. جميع الحقوق محفوظة.",
     },
     common: {
       language: "اللغة",
@@ -443,11 +443,11 @@ export const content = {
     },
     homeCta: {
       headline: "هل أنت مستعد لتمكين مستقبل طفلك؟",
-      subtext: "انضم إلى CTRLS-S وابدأ رحلتهم ليصبحوا مفكرين وبناة واثقين.",
+      subtext: "انضم إلى CTRL-S وابدأ رحلتهم ليصبحوا مفكرين وبناة واثقين.",
     },
     enrollment: {
       title: "اختر خطتك",
-      description: "اختر الخطة المثالية لبدء رحلة طفلك مع CTRLS-S.",
+      description: "اختر الخطة المثالية لبدء رحلة طفلك مع CTRL-S.",
       plan: {
         name: "برنامج مستوى تكنولوجيا المعلومات والاتصالات 1",
         price: "2500 جنيه مصري",

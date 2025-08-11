@@ -51,7 +51,7 @@ export default function WhyCtrlsSSection() {
           (prevIndex) =>
             (prevIndex + 1) % currentContent.whyCtrlsS.points.length
         );
-      }, 4000);
+      }, 8000);
       return () => clearInterval(interval);
     }
   }, [isMobile, currentContent.whyCtrlsS.points.length]);
@@ -66,12 +66,12 @@ export default function WhyCtrlsSSection() {
         {/* Desktop & Tablet Layout */}
         <div
           className={cn(
-            "hidden md:flex mt-12 gap-8 items-center min-h-[500px]",
+            "hidden md:flex mt-12 items-start justify-start min-h-[500px]",
             isArabic ? "md:flex-row-reverse" : "md:flex-row"
           )}
         >
           {/* Reasons List */}
-          <div className="flex flex-col gap-4 md:w-2/5">
+          <div className="flex flex-col gap-4 md:w-2/5 h-[450px] overflow-y-auto">
             {currentContent.whyCtrlsS.points.map((point, index) => {
               const IconComponent = IconMap[point.icon as keyof typeof IconMap];
               const isActive = index === activeReasonIndex;
@@ -80,7 +80,7 @@ export default function WhyCtrlsSSection() {
                   key={index}
                   variant="ghost"
                   className={cn(
-                    "flex flex-row items-center gap-4 p-4 rounded-lg shadow-md transition-all duration-300 h-auto w-full justify-start",
+                    "flex flex-row items-center gap-4 p-6 rounded-lg shadow-md transition-all duration-300 h-auto w-full justify-start",
                     isActive
                       ? "bg-gradient-to-r from-blueGradientStart to-blueGradientEnd text-primary-purple"
                       : "bg-gradient-to-br from-teal/10 to-purple/10 text-black hover:scale-[1.02]"
@@ -97,7 +97,7 @@ export default function WhyCtrlsSSection() {
                   )}
                   <h3
                     className={cn(
-                      "font-inter text-lg font-bold ",
+                      "font-inter text-lg font-bold",
                       isArabic && "text-right"
                     )}
                   >
@@ -109,7 +109,7 @@ export default function WhyCtrlsSSection() {
           </div>
 
           {/* Image & Description */}
-          <div className="relative flex flex-col items-center justify-center md:w-3/5 h-full">
+          <div className="relative flex flex-col items-center justify-start md:w-3/5 h-[500px]">
             <Image
               src={
                 currentContent.whyCtrlsS.points[activeReasonIndex]
@@ -117,88 +117,95 @@ export default function WhyCtrlsSSection() {
               }
               width={400}
               height={400}
-              alt={currentContent.whyCtrlsS.points[activeReasonIndex].shortTitle}
-              className="w-full w-[400px] h-[400px] object-cover rounded-lg shadow-lg"
+              alt={
+                currentContent.whyCtrlsS.points[activeReasonIndex].shortTitle
+              }
+              className="w-[350px] h-[350px] object-contain"
             />
-            <p className="mt-4 text-neutral-grey text-base font-normal text-center px-4 leading-relaxed">
+            <p className="mt-4 text-neutral-grey text-xs font-normal w-1/2 text-center px-4 leading-relaxed overflow-y-auto max-h-[100px]">
               {currentContent.whyCtrlsS.points[activeReasonIndex].description}
             </p>
           </div>
         </div>
 
         {/* Mobile Layout */}
-<div className="md:hidden mt-12 flex flex-col items-center min-h-[600px]">
-  {/* Image with swapped arrows */}
-  <div className="relative flex items-center justify-center w-full max-w-[300px]">
-    {/* Right Arrow */}
-    <button
-      className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-black/60 text-white shadow-md z-10 hover:bg-black/80 transition"
-      onClick={() =>
-        setCurrentSlideIndex(
-          (prev) => (prev + 1) % currentContent.whyCtrlsS.points.length
-        )
-      }
-      aria-label="Next slide"
-    >
-      ›
-    </button>
+        <div className="md:hidden mt-12 flex flex-col items-center h-[600px]">
+          {" "}
+          {/* FIXED HEIGHT */}
+          {/* Image with swapped arrows */}
+          <div className="relative flex items-center justify-center w-full max-w-[300px]">
+            {/* Right Arrow */}
+            <button
+              className="absolute -right-6 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-black/60 text-white shadow-md z-10 hover:bg-black/80 transition"
+              onClick={() =>
+                setCurrentSlideIndex(
+                  (prev) => (prev + 1) % currentContent.whyCtrlsS.points.length
+                )
+              }
+              aria-label="Next slide"
+            >
+              ›
+            </button>
 
-    {/* Image */}
-    <Image
-      src={
-        currentContent.whyCtrlsS.points[currentSlideIndex]
-          .mainFeatureImage || "/placeholder.svg"
-      }
-      width={250}
-      height={250}
-      alt={currentContent.whyCtrlsS.points[currentSlideIndex].shortTitle}
-      className="w-full h-auto object-contain rounded-lg shadow-lg"
-    />
+            {/* Image */}
+            <Image
+              src={
+                currentContent.whyCtrlsS.points[currentSlideIndex]
+                  .mainFeatureImage || "/placeholder.svg"
+              }
+              width={250}
+              height={250}
+              alt={
+                currentContent.whyCtrlsS.points[currentSlideIndex].shortTitle
+              }
+              className="w-full h-auto object-contain"
+            />
 
-    {/* Left Arrow */}
-    <button
-      className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-black/60 text-white shadow-md z-10 hover:bg-black/80 transition"
-      onClick={() =>
-        setCurrentSlideIndex(
-          (prev) =>
-            (prev - 1 + currentContent.whyCtrlsS.points.length) %
-            currentContent.whyCtrlsS.points.length
-        )
-      }
-      aria-label="Previous slide"
-    >
-      ‹
-    </button>
-  </div>
-
-  {/* Title */}
-  <h3 className="font-inter text-2xl font-bold text-neutral-dark text-center mb-2 mt-4 min-h-[3rem] flex items-center">
-    {currentContent.whyCtrlsS.points[currentSlideIndex].shortTitle}
-  </h3>
-
-  {/* Description */}
-  <p className="text-neutral-grey text-base font-normal px-4 leading-relaxed min-h-[6rem] flex items-center">
-    {currentContent.whyCtrlsS.points[currentSlideIndex].description}
-  </p>
-
-  {/* Dots */}
-  <div className="flex justify-center gap-2 mt-8">
-    {currentContent.whyCtrlsS.points.map((_, index) => (
-      <button
-        key={index}
-        className={cn(
-          "h-3 w-3 rounded-full transition-colors duration-300",
-          index === currentSlideIndex
-            ? "bg-blueGradientEnd"
-            : "bg-gray-300"
-        )}
-        onClick={() => setCurrentSlideIndex(index)}
-        aria-label={`Go to slide ${index + 1}`}
-      />
-    ))}
-  </div>
-</div>
-
+            {/* Left Arrow */}
+            <button
+              className="absolute -left-6 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-black/60 text-white shadow-md z-10 hover:bg-black/80 transition"
+              onClick={() =>
+                setCurrentSlideIndex(
+                  (prev) =>
+                    (prev - 1 + currentContent.whyCtrlsS.points.length) %
+                    currentContent.whyCtrlsS.points.length
+                )
+              }
+              aria-label="Previous slide"
+            >
+              ‹
+            </button>
+          </div>
+          {/* Title + Description Wrapper */}
+          <div className="flex flex-col items-center justify-start flex-grow max-h-[200px]">
+            {" "}
+            {/* FIXED MAX HEIGHT */}
+            {/* Title */}
+            <h3 className="font-inter text-2xl font-bold text-neutral-dark text-center mb-2 mt-4 min-h-[3rem] flex items-center">
+              {currentContent.whyCtrlsS.points[currentSlideIndex].shortTitle}
+            </h3>
+            {/* Description */}
+            <p className="text-neutral-grey text-sm font-normal px-4 leading-relaxed text-center min-h-[6rem] max-h-[6rem] ">
+              {currentContent.whyCtrlsS.points[currentSlideIndex].description}
+            </p>
+          </div>
+          {/* Dots */}
+          <div className="flex justify-center gap-2 mt-8">
+            {currentContent.whyCtrlsS.points.map((_, index) => (
+              <button
+                key={index}
+                className={cn(
+                  "h-3 w-3 rounded-full transition-colors duration-300",
+                  index === currentSlideIndex
+                    ? "bg-blueGradientEnd"
+                    : "bg-gray-300"
+                )}
+                onClick={() => setCurrentSlideIndex(index)}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
