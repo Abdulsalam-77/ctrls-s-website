@@ -112,7 +112,7 @@ export default function HeroSection() {
           )}
         >
           <Image
-            src="/photo.png"
+            src="/hero-section.png"
             width={468}
             height={766}
             alt={currentContent.hero.imageAlt}

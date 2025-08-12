@@ -43,35 +43,35 @@ export const content = {
           shortTitle: "Thinkers, Not Just Coders",
           description:
             "We teach code as the powerful language of creation. By mastering it, students don't just build projects; they build a creative mindset to solve any problem.",
-          mainFeatureImage: "/why-ctrl-s/Thinkers, Not Just Coders.PNG", // New property
+          mainFeatureImage: "/why-ctrl-s/Thinkers.png", // New property
         },
         {
           icon: "Users",
           shortTitle: "Soft Skills Build Their Future",
           description:
             "Beyond the clicks, there's a new way of thinking. This course builds the essential Soft Skills like structured problem-solving and resilience—that are critical for success on any future path.",
-          mainFeatureImage: "/why-ctrl-s/Soft Skills Build Their Future.PNG", // New property
+          mainFeatureImage: "/why-ctrl-s/soft-skills.png", // New property
         },
         {
           icon: "Laptop",
           shortTitle: "An Early Path to Success",
           description:
             "Imagine your teen entering university already mastering the skills others are just beginning to learn. That is the powerful advantage we provide. We introduce practical, high-level skills years ahead of schedule, building true confidence for their academic and professional future.",
-          mainFeatureImage: "/why-ctrl-s/An Early Path to Success.PNG", // New property
+          mainFeatureImage: "/why-ctrl-s/early-path.png", // New property
         },
         {
           icon: "Map",
-          shortTitle: "A Clear Journey to Confidence",
+          shortTitle: "A Roadmap You Can Trust",
           description:
             "No random lessons, no confusing path. We provide a structured roadmap where each lesson builds logically on the last. This clarity gives students the confidence to master new skills because they always know what’s next.",
-          mainFeatureImage: "/why-ctrl-s/A Roadmap You Can Trust.PNG", // New property
+          mainFeatureImage: "/why-ctrl-s/roadmap.png", // New property
         },
         {
           icon: "Heart",
-          shortTitle: "Your Success is Our Story",
+          shortTitle: "A Learning Community That Feels Like Family",
           description:
             "To us, your teen is not just another student. We are personally invested in their journey, providing dedicated guidance and steadfast support they need to thrive. We don’t just build courses; we build relationships.",
-          mainFeatureImage: "/why-ctrl-s/A Learning Community That Feels Like Family.png", // New property
+          mainFeatureImage: "/why-ctrl-s/comunity .png", // New property
         },
       ],
     },
@@ -328,36 +328,36 @@ export const content = {
           icon: "Brain",
           shortTitle: "نحن نبني مفكرين، وليس مجرد مبرمجين.",
           description:
-            "في داخل كل طالب، يوجد مبدع ومفكر ينتظر الفرصة. مهمتنا هي إيقاظ هذا الإبداع. البرمجة هي الأداة التي يتعلمون بها كيف يحولون الفوضى إلى نظام، والأفكار إلى واقع ملموس، والتحديات إلى انتصارات يفتخرون بها.",
-          mainFeatureImage: "/why-ctrl-s/Thinkers, Not Just Coders without logo.PNG", // New property
+            "نحن لا نُعلّم الطلاب البرمجة فقط، بل نُغيّر طريقتهم في التفكير. نركز أولاً على حل المشكلات والإبداع، لنُعدّهم للتكيّف والابتكار في أي مجال يختارونه، وتكون البرمجة مجرد أداة يستخدمونها لتحويل أفكارهم إلى واقع ملموس.",
+          mainFeatureImage: "/why-ctrl-s/Thinkers.png", // New property
         },
         {
           icon: "Users",
           shortTitle: "مهارات شخصية تبني مستقبلهم",
           description:
-            "المستقبل المشرق لا يُبنى بالمهارات التقنية وحدها. لهذا السبب، ندمج في كل مشروع المهارات الأساسية للنجاح، مثل التفكير المنطقي والمرونة في حل المشكلات، لنُعدّهم للنجاح بثقة في أي مسار يختارونه.",
-          mainFeatureImage: "/why-ctrl-s/Soft Skills Build Their Future.PNG", // New property
+          "خلف الشاشات، هناك طريقة جديدة للتفكير. في هذه الدورات نُعلّم المهارات الشخصية الأساسية — مثل التفكير المنطقي، وحل المشكلات بطريقة منظمة، والمرونة — وهي مهارات حاسمة للنجاح في أي مسار مستقبلي.",
+          mainFeatureImage: "/why-ctrl-s/soft-skills.png", // New property
         },
         {
           icon: "Laptop",
           shortTitle: "مسار مبكر نحو النجاح",
           description:
-            "تخيّل ابنك يدخل الجامعة وهو يتقن مهارات لا يزال الآخرون في بداية تعلّمها. هذه هي القوة الحقيقية التي نقدمها. نحن نُعلّم مهارات عملية ومتقدمة قبل أوانها، لنمنحهم ثقة أكاديمية ومهنية تسبق عمرهم وتفتح لهم أبواب المستقبل.",
-          mainFeatureImage: "/why-ctrl-s/An Early Path to Success.PNG", // New property
+          "عندما يتعلّم المراهق هذه المهارات في سن مبكرة، يحصل على ميزة حقيقية؛ إذ يدخل إلى دراسته الجامعية وحياته المهنية وهو يمتلك وضوح التفكير، والثقة، والقدرة على حل المشكلات، وهي قدرات لا يبدأ كثير من أقرانه في اكتسابها إلا لاحقًا.",
+          mainFeatureImage: "/why-ctrl-s/early-path.png", // New property
         },
         {
           icon: "Map",
-          shortTitle: "رحلة واضحة تبني الثقة",
+          shortTitle: "رحلة تعليمية  يمكنك الوثوق بها",
           description:
-            "لا دروس عشوائية ولا مسارات مربكة. نحن نقدم خارطة طريق تعليمية منظمة، حيث تبني كل خطوة على السابقة بشكل مدروس. هذا التنظيم يمنح الطالب وضوحًا وثقة، لأنه دائمًا يعرف ما ينتظره، ويشعر بأنه يتقدم بثبات نحو إتقان المهارات الجديدة.",
-          mainFeatureImage: "/why-ctrl-s/A Roadmap You Can Trust without logo.PNG", // New property
+          "لا دروس عشوائية، ولا مسارات مربكة. نحن نقدم خارطة طريق تعليمية واضحة، حيث تبني كل خطوة على ما قبلها بطريقة مدروسة. هذا الوضوح يمنح الطالب الثقة والشعور بالتقدم المستمر نحو إتقان مهارات جديدة.",
+          mainFeatureImage: "/why-ctrl-s/roadmap.png", // New property
         },
         {
           icon: "Heart",
-          shortTitle: "نجاحهم هو قصتنا",
+          shortTitle: "مجتمع تعليمي بروح العائل",
           description:
-            "نحن لا نرى الطالب كمجرد متلقٍّ للمعلومة، بل كجزء من قصة نجاح أكبر. من خلال نقل خبراتنا العملية وتجاربنا الحقيقية، نمنحهم الأدوات التي يحتاجونها للتميّز. نحن لا نقدم محتوى نظريًا فقط، بل نشاركهم ما تعلمناه من الواقع، ليكونوا مستعدين لأي تحدٍّ ينتظرهم.",
-          mainFeatureImage: "/why-ctrl-s/A Learning Community That Feels Like Family.png", // New property
+          "في منصتنا، نعتبر كل طالب جزءًا من عائلتنا. ننمو معهم، نحتفل بإنجازاتهم، وندعمهم في كل التحديات. ليست مجرد دورة تدريبية، بل مجتمع يشعر فيه الطلاب بأنهم مرئيون، مُقدَّرون، ومُلهمون ليصبحوا أفضل نسخة من أنفسهم.",
+          mainFeatureImage: "/why-ctrl-s/comunity .png", // New property
         },
       ],
     },
