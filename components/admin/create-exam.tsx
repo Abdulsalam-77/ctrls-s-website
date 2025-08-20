@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,10 +8,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -20,500 +27,466 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, GripVertical, Save } from "lucide-react";
+import { Eye, Save, Clock, User, FileText } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
-type QuestionType = "mcq" | "true_false" | "open_ended";
+type Submission = {
+  id: string;
+  student_id: string;
+  exam_id: string;
+  started_at: string;
+  submitted_at: string | null;
+  is_submitted: boolean;
+  time_taken_minutes: number | null;
+  total_score: number | null;
+  max_score: number | null;
+  is_graded: boolean;
+  student: {
+    email: string;
+    full_name: string | null;
+  };
+  exam: {
+    title: string;
+  };
+  answers: Answer[];
+};
+
+type Answer = {
+  id: string;
+  question_id: string;
+  answer_text: string | null;
+  selected_option_id: string | null;
+  score: number | null;
+  feedback: string | null;
+  question: {
+    question_text: string;
+    question_type: string;
+    points: number;
+    question_options: QuestionOption[];
+  };
+};
 
 type QuestionOption = {
   id: string;
-  text: string;
-  isCorrect: boolean;
+  option_text: string;
+  is_correct: boolean;
 };
 
-type Question = {
-  id: string;
-  text: string;
-  type: QuestionType;
-  points: number;
-  options: QuestionOption[];
-};
+export function GradeManagement() {
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [selectedSubmission, setSelectedSubmission] =
+    useState<Submission | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<string>("all");
 
-interface CreateExamProps {
-  onExamCreated: () => void;
-}
+  useEffect(() => {
+    fetchSubmissions();
+  }, []);
 
-export function CreateExam({ onExamCreated }: CreateExamProps) {
-  const [examData, setExamData] = useState({
-    title: "",
-    description: "",
-    duration: 60,
-    allowReview: true,
-    visibilityType: "all" as "all" | "selected",
-  });
+  const fetchSubmissions = async () => {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("submissions")
+        .select(
+          `
+          *,
+          student:profiles(email, full_name),
+          exam:exams(title),
+          answers(
+            *,
+            question:questions(
+              question_text,
+              question_type,
+              points,
+              question_options(id, option_text, is_correct)
+            )
+          )
+        `
+        )
+        .eq("is_submitted", true)
+        .order("submitted_at", { ascending: false });
 
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [isCreating, setIsCreating] = useState(false);
+      if (error) throw error;
 
-  const addQuestion = () => {
-    const newQuestion: Question = {
-      id: crypto.randomUUID(),
-      text: "",
-      type: "mcq",
-      points: 1,
-      options: [
-        { id: crypto.randomUUID(), text: "", isCorrect: true },
-        { id: crypto.randomUUID(), text: "", isCorrect: false },
-        { id: crypto.randomUUID(), text: "", isCorrect: false },
-        { id: crypto.randomUUID(), text: "", isCorrect: false },
-      ],
-    };
-    setQuestions([...questions, newQuestion]);
+      setSubmissions(data || []);
+    } catch (error) {
+      console.error("Error fetching submissions:", error);
+      toast.error("Failed to load submissions");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const removeQuestion = (questionId: string) => {
-    setQuestions(questions.filter((q) => q.id !== questionId));
-  };
+  const updateAnswerScore = (
+    answerId: string,
+    score: number,
+    feedback: string
+  ) => {
+    if (!selectedSubmission) return;
 
-  const updateQuestion = (questionId: string, updates: Partial<Question>) => {
-    setQuestions(
-      questions.map((q) => (q.id === questionId ? { ...q, ...updates } : q))
+    const updatedAnswers = selectedSubmission.answers.map((answer) =>
+      answer.id === answerId ? { ...answer, score, feedback } : answer
     );
+
+    setSelectedSubmission({
+      ...selectedSubmission,
+      answers: updatedAnswers,
+    });
   };
 
-  const updateQuestionType = (questionId: string, type: QuestionType) => {
-    const question = questions.find((q) => q.id === questionId);
-    if (!question) return;
+  const saveGrades = async () => {
+    if (!selectedSubmission) return;
 
-    let newOptions: QuestionOption[] = [];
-
-    if (type === "mcq") {
-      newOptions = [
-        { id: crypto.randomUUID(), text: "", isCorrect: true },
-        { id: crypto.randomUUID(), text: "", isCorrect: false },
-        { id: crypto.randomUUID(), text: "", isCorrect: false },
-        { id: crypto.randomUUID(), text: "", isCorrect: false },
-      ];
-    } else if (type === "true_false") {
-      newOptions = [
-        { id: crypto.randomUUID(), text: "True", isCorrect: true },
-        { id: crypto.randomUUID(), text: "False", isCorrect: false },
-      ];
-    } else {
-      newOptions = [];
-    }
-
-    updateQuestion(questionId, { type, options: newOptions });
-  };
-
-  const updateOption = (questionId: string, optionId: string, text: string) => {
-    const question = questions.find((q) => q.id === questionId);
-    if (!question) return;
-
-    const newOptions = question.options.map((opt) =>
-      opt.id === optionId ? { ...opt, text } : opt
-    );
-    updateQuestion(questionId, { options: newOptions });
-  };
-
-  const setCorrectOption = (questionId: string, optionId: string) => {
-    const question = questions.find((q) => q.id === questionId);
-    if (!question) return;
-
-    const newOptions = question.options.map((opt) => ({
-      ...opt,
-      isCorrect: opt.id === optionId,
-    }));
-    updateQuestion(questionId, { options: newOptions });
-  };
-
-  const createExam = async () => {
-    if (!examData.title.trim()) {
-      toast.error("Please enter an exam title");
-      return;
-    }
-
-    if (questions.length === 0) {
-      toast.error("Please add at least one question");
-      return;
-    }
-
-    // Validate questions
-    for (const question of questions) {
-      if (!question.text.trim()) {
-        toast.error("All questions must have text");
-        return;
-      }
-
-      if (question.type !== "open_ended") {
-        const hasCorrectAnswer = question.options.some((opt) => opt.isCorrect);
-        if (!hasCorrectAnswer) {
-          toast.error(
-            "All MCQ and True/False questions must have a correct answer"
-          );
-          return;
-        }
-
-        const hasEmptyOption = question.options.some((opt) => !opt.text.trim());
-        if (hasEmptyOption) {
-          toast.error("All answer options must have text");
-          return;
-        }
-      }
-    }
-
-    setIsCreating(true);
+    setIsSaving(true);
 
     try {
       const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
 
-      if (!user) {
-        toast.error("You must be logged in to create an exam");
-        return;
-      }
+      // Update individual answer scores and feedback
+      for (const answer of selectedSubmission.answers) {
+        if (answer.question.question_type === "open_ended") {
+          const { error } = await supabase
+            .from("answers")
+            .update({
+              score: answer.score,
+              feedback: answer.feedback,
+            })
+            .eq("id", answer.id);
 
-      // Create exam
-      const { data: examResult, error: examError } = await supabase
-        .from("exams")
-        .insert({
-          title: examData.title,
-          description: examData.description || null,
-          duration_minutes: examData.duration,
-          allow_review: examData.allowReview,
-          visibility_type: examData.visibilityType,
-          created_by: user.id,
-        })
-        .select()
-        .single();
-
-      if (examError) throw examError;
-
-      // Create questions
-      for (let i = 0; i < questions.length; i++) {
-        const question = questions[i];
-
-        const { data: questionResult, error: questionError } = await supabase
-          .from("questions")
-          .insert({
-            exam_id: examResult.id,
-            question_text: question.text,
-            question_type: question.type,
-            points: question.points,
-            order_index: i + 1,
-          })
-          .select()
-          .single();
-
-        if (questionError) throw questionError;
-
-        // Create options for MCQ and True/False questions
-        if (question.type !== "open_ended" && question.options.length > 0) {
-          const optionsToInsert = question.options.map((option, index) => ({
-            question_id: questionResult.id,
-            option_text: option.text,
-            is_correct: option.isCorrect,
-            option_order: index + 1,
-          }));
-
-          const { error: optionsError } = await supabase
-            .from("question_options")
-            .insert(optionsToInsert);
-
-          if (optionsError) throw optionsError;
+          if (error) throw error;
         }
       }
 
-      toast.success("Exam created successfully!");
+      // Calculate total score
+      const totalScore = selectedSubmission.answers.reduce((sum, answer) => {
+        return sum + (answer.score || 0);
+      }, 0);
 
-      // Reset form
-      setExamData({
-        title: "",
-        description: "",
-        duration: 60,
-        allowReview: true,
-        visibilityType: "all",
-      });
-      setQuestions([]);
+      const maxScore = selectedSubmission.answers.reduce((sum, answer) => {
+        return sum + answer.question.points;
+      }, 0);
 
-      onExamCreated();
+      // Update submission with total score
+      const { error: submissionError } = await supabase
+        .from("submissions")
+        .update({
+          total_score: totalScore,
+          max_score: maxScore,
+          is_graded: true,
+        })
+        .eq("id", selectedSubmission.id);
+
+      if (submissionError) throw submissionError;
+
+      toast.success("Grades saved successfully!");
+      fetchSubmissions();
+      setSelectedSubmission(null);
     } catch (error) {
-      console.error("Error creating exam:", error);
-      toast.error("Failed to create exam");
+      console.error("Error saving grades:", error);
+      toast.error("Failed to save grades");
     } finally {
-      setIsCreating(false);
+      setIsSaving(false);
     }
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Exam Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Exam Details</CardTitle>
-          <CardDescription>
-            Configure the basic settings for your exam
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Exam Title *</Label>
-              <Input
-                id="title"
-                value={examData.title}
-                onChange={(e) =>
-                  setExamData({ ...examData, title: e.target.value })
-                }
-                placeholder="Enter exam title"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="duration">Duration (minutes) *</Label>
-              <Input
-                id="duration"
-                type="number"
-                min="1"
-                value={examData.duration}
-                onChange={(e) =>
-                  setExamData({
-                    ...examData,
-                    duration: Number.parseInt(e.target.value) || 60,
-                  })
-                }
-              />
-            </div>
-          </div>
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "Not submitted";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={examData.description}
-              onChange={(e) =>
-                setExamData({ ...examData, description: e.target.value })
-              }
-              placeholder="Enter exam description (optional)"
-              rows={3}
-            />
-          </div>
+  const getScoreColor = (score: number | null, maxScore: number | null) => {
+    if (!score || !maxScore) return "text-gray-500";
+    const percentage = (score / maxScore) * 100;
+    if (percentage >= 80) return "text-green-600";
+    if (percentage >= 60) return "text-yellow-600";
+    return "text-red-600";
+  };
 
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>Allow Review</Label>
-              <p className="text-sm text-muted-foreground">
-                Students can review their answers after submission
-              </p>
-            </div>
-            <Switch
-              checked={examData.allowReview}
-              onCheckedChange={(checked) =>
-                setExamData({ ...examData, allowReview: checked })
-              }
-            />
-          </div>
+  const filteredSubmissions = submissions.filter((submission) => {
+    if (filterStatus === "all") return true;
+    if (filterStatus === "graded") return submission.is_graded;
+    if (filterStatus === "ungraded") return !submission.is_graded;
+    return true;
+  });
 
-          <div className="space-y-2">
-            <Label>Visibility</Label>
-            <Select
-              value={examData.visibilityType}
-              onValueChange={(value: "all" | "selected") =>
-                setExamData({ ...examData, visibilityType: value })
-              }
+  if (isLoading) {
+    return <div>Loading submissions...</div>;
+  }
+
+  if (selectedSubmission) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Grade Submission</h2>
+            <p className="text-muted-foreground">
+              {selectedSubmission.student.full_name ||
+                selectedSubmission.student.email}{" "}
+              - {selectedSubmission.exam.title}
+            </p>
+          </div>
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setSelectedSubmission(null)}
             >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Students</SelectItem>
-                <SelectItem value="selected">Selected Students Only</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Questions */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Questions</CardTitle>
-              <CardDescription>
-                Add questions to your exam. You can create MCQ, True/False, or
-                open-ended questions.
-              </CardDescription>
-            </div>
-            <Button onClick={addQuestion}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Question
+              Back to List
+            </Button>
+            <Button onClick={saveGrades} disabled={isSaving}>
+              <Save className="h-4 w-4 mr-2" />
+              {isSaving ? "Saving..." : "Save Grades"}
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          {questions.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">
-                No questions added yet
-              </p>
-              <Button onClick={addQuestion} variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Your First Question
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {questions.map((question, index) => (
-                <div
-                  key={question.id}
-                  className="border rounded-lg p-4 space-y-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <GripVertical className="h-4 w-4 text-muted-foreground" />
-                      <Badge variant="outline">Question {index + 1}</Badge>
-                      <Badge variant="secondary" className="capitalize">
-                        {question.type.replace("_", " ")}
-                      </Badge>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeQuestion(question.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+        </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="md:col-span-2 space-y-2">
-                      <Label>Question Text *</Label>
-                      <Textarea
-                        value={question.text}
-                        onChange={(e) =>
-                          updateQuestion(question.id, { text: e.target.value })
-                        }
-                        placeholder="Enter your question"
-                        rows={2}
-                      />
+        <div className="space-y-4">
+          {selectedSubmission.answers.map((answer, index) => (
+            <Card key={answer.id}>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  Question {index + 1} ({answer.question.points} points)
+                </CardTitle>
+                <CardDescription>
+                  {answer.question.question_text}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">Student Answer:</h4>
+                  {answer.question.question_type === "open_ended" ? (
+                    <div className="p-3 bg-gray-50 rounded-md">
+                      {answer.answer_text || "No answer provided"}
                     </div>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Question Type</Label>
-                        <Select
-                          value={question.type}
-                          onValueChange={(value: QuestionType) =>
-                            updateQuestionType(question.id, value)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="mcq">Multiple Choice</SelectItem>
-                            <SelectItem value="true_false">
-                              True/False
-                            </SelectItem>
-                            <SelectItem value="open_ended">
-                              Open Ended
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Points</Label>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={question.points}
-                          onChange={(e) =>
-                            updateQuestion(question.id, {
-                              points: Number.parseInt(e.target.value) || 1,
-                            })
-                          }
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Answer Options */}
-                  {question.type !== "open_ended" && (
-                    <div className="space-y-2">
-                      <Label>Answer Options</Label>
-                      <div className="space-y-2">
-                        {question.options.map((option, optionIndex) => (
-                          <div
-                            key={option.id}
-                            className="flex items-center gap-2"
-                          >
-                            <input
-                              type="radio"
-                              name={`correct-${question.id}`}
-                              checked={option.isCorrect}
-                              onChange={() =>
-                                setCorrectOption(question.id, option.id)
-                              }
-                              className="mt-1"
-                            />
-                            <Input
-                              value={option.text}
-                              onChange={(e) =>
-                                updateOption(
-                                  question.id,
-                                  option.id,
-                                  e.target.value
-                                )
-                              }
-                              placeholder={`Option ${optionIndex + 1}`}
-                              disabled={question.type === "true_false"}
-                            />
-                            {option.isCorrect && (
-                              <Badge variant="default" className="text-xs">
-                                Correct
-                              </Badge>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Select the radio button next to the correct answer
-                      </p>
-                    </div>
-                  )}
-
-                  {question.type === "open_ended" && (
-                    <div className="bg-muted/50 p-3 rounded-md">
-                      <p className="text-sm text-muted-foreground">
-                        This is an open-ended question. Students will provide a
-                        text response that will need to be graded manually.
-                      </p>
+                  ) : (
+                    <div className="p-3 bg-gray-50 rounded-md">
+                      {answer.selected_option_id
+                        ? answer.question.question_options.find(
+                            (opt) => opt.id === answer.selected_option_id
+                          )?.option_text || "Unknown option"
+                        : "No answer selected"}
                     </div>
                   )}
                 </div>
-              ))}
+
+                {answer.question.question_type !== "open_ended" && (
+                  <div>
+                    <h4 className="font-medium mb-2">Correct Answer:</h4>
+                    <div className="p-3 bg-green-50 rounded-md">
+                      {answer.question.question_options.find(
+                        (opt) => opt.is_correct
+                      )?.option_text || "No correct answer set"}
+                    </div>
+                  </div>
+                )}
+
+                {answer.question.question_type === "open_ended" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Score (out of {answer.question.points})
+                      </label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max={answer.question.points}
+                        value={answer.score || 0}
+                        onChange={(e) =>
+                          updateAnswerScore(
+                            answer.id,
+                            Number.parseInt(e.target.value) || 0,
+                            answer.feedback || ""
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Feedback</label>
+                      <Textarea
+                        value={answer.feedback || ""}
+                        onChange={(e) =>
+                          updateAnswerScore(
+                            answer.id,
+                            answer.score || 0,
+                            e.target.value
+                          )
+                        }
+                        placeholder="Provide feedback for the student"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {answer.question.question_type !== "open_ended" && (
+                  <div className="flex items-center space-x-2">
+                    <Badge
+                      variant={
+                        answer.score === answer.question.points
+                          ? "default"
+                          : "destructive"
+                      }
+                    >
+                      {answer.score === answer.question.points
+                        ? "Correct"
+                        : "Incorrect"}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      Score: {answer.score || 0}/{answer.question.points}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Grade Management</h2>
+          <p className="text-muted-foreground">
+            Review and grade student submissions
+          </p>
+        </div>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Submissions</SelectItem>
+            <SelectItem value="graded">Graded</SelectItem>
+            <SelectItem value="ungraded">Ungraded</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Submissions
+            </CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{submissions.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Graded</CardTitle>
+            <Eye className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {submissions.filter((s) => s.is_graded).length}
             </div>
-          )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {submissions.filter((s) => !s.is_graded).length}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Submissions</CardTitle>
+          <CardDescription>Click on a submission to grade it</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Student</TableHead>
+                <TableHead>Exam</TableHead>
+                <TableHead>Submitted</TableHead>
+                <TableHead>Time Taken</TableHead>
+                <TableHead>Score</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredSubmissions.map((submission) => (
+                <TableRow key={submission.id}>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <User className="h-4 w-4 mr-2" />
+                      <div>
+                        <div className="font-medium">
+                          {submission.student.full_name || "Unknown"}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {submission.student.email}
+                        </div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{submission.exam.title}</TableCell>
+                  <TableCell>{formatDate(submission.submitted_at)}</TableCell>
+                  <TableCell>
+                    {submission.time_taken_minutes
+                      ? `${submission.time_taken_minutes} min`
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    {submission.total_score !== null &&
+                    submission.max_score !== null ? (
+                      <span
+                        className={getScoreColor(
+                          submission.total_score,
+                          submission.max_score
+                        )}
+                      >
+                        {submission.total_score}/{submission.max_score}
+                      </span>
+                    ) : (
+                      "Not graded"
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={submission.is_graded ? "default" : "secondary"}
+                    >
+                      {submission.is_graded ? "Graded" : "Pending"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedSubmission(submission)}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Grade
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
-
-      {/* Create Button */}
-      <div className="flex justify-end">
-        <Button
-          onClick={createExam}
-          disabled={
-            isCreating || !examData.title.trim() || questions.length === 0
-          }
-          size="lg"
-        >
-          <Save className="h-4 w-4 mr-2" />
-          {isCreating ? "Creating Exam..." : "Create Exam"}
-        </Button>
-      </div>
     </div>
   );
 }
