@@ -1,79 +1,86 @@
-"use client"
+"use client";
 
-import { useSearchParams, redirect, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { useLanguage } from "@/components/language-context"
-import type { VideoLecture } from "@/lib/content"
-import VideoPlayerComponent from "@/components/video-player-component"
-import VideoThumbnailCard from "@/components/video-thumbnail-card"
-import { cn } from "@/lib/utils"
-import { createClient } from "@/lib/supabase/client" // Use client-side Supabase client
-import { Button } from "@/components/ui/button"
-import { signOut } from "@/app/auth/actions"
-import { ArrowLeft } from "lucide-react"
+import { useSearchParams, redirect, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useLanguage } from "@/components/language-context";
+import type { VideoLecture } from "@/lib/content";
+import VideoPlayerComponent from "@/components/video-player-component";
+import VideoThumbnailCard from "@/components/video-thumbnail-card";
+import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client"; // Use client-side Supabase client
+import { Button } from "@/components/ui/button";
+import { signOut } from "@/app/auth/actions";
+import { ArrowLeft } from "lucide-react";
 
 export default function StudentPlayerPage() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const initialVideoId = searchParams.get("id")
-  const { currentContent, language } = useLanguage()
-  const isArabic = language === "ar"
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const initialVideoId = searchParams.get("id");
+  const { currentContent, language } = useLanguage();
+  const isArabic = language === "ar";
 
-  const [currentVideo, setCurrentVideo] = useState<VideoLecture | undefined>(undefined)
+  const [currentVideo, setCurrentVideo] = useState<VideoLecture | undefined>(
+    undefined
+  );
 
   // Simulate user authentication check on client-side (for demo purposes)
   useEffect(() => {
     const checkUser = async () => {
-      const supabase = createClient()
-      const { data, error } = await supabase.auth.getUser()
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.getUser();
       if (error || !data?.user) {
-        redirect("/auth/login")
+        redirect("/auth/login");
       }
       // In a real app, you'd also check is_admin here and redirect if admin
-    }
-    checkUser()
-  }, [])
+    };
+    checkUser();
+  }, []);
 
   useEffect(() => {
     if (initialVideoId) {
-      const foundVideo = currentContent.lectures.find((v) => v.id === initialVideoId)
+      const foundVideo = currentContent.lectures.find(
+        (v) => v.id === initialVideoId
+      );
       if (foundVideo) {
-        setCurrentVideo(foundVideo)
+        setCurrentVideo(foundVideo);
       } else {
         // If video not found, redirect back to dashboard or show error
-        redirect("/dashboard/student")
+        redirect("/dashboard/student");
       }
     } else {
       // If no ID in URL, try to load last watched or redirect
-      const lastWatchedId = localStorage.getItem("lastWatchedVideoId")
+      const lastWatchedId = localStorage.getItem("lastWatchedVideoId");
       if (lastWatchedId) {
-        const foundVideo = currentContent.lectures.find((v) => v.id === lastWatchedId)
+        const foundVideo = currentContent.lectures.find(
+          (v) => v.id === lastWatchedId
+        );
         if (foundVideo) {
-          setCurrentVideo(foundVideo)
+          setCurrentVideo(foundVideo);
         } else {
-          redirect("/dashboard/student")
+          redirect("/dashboard/student");
         }
       } else {
-        redirect("/dashboard/student")
+        redirect("/dashboard/student");
       }
     }
-  }, [initialVideoId, currentContent.lectures]) // Depend on initialVideoId and lectures
+  }, [initialVideoId, currentContent.lectures]); // Depend on initialVideoId and lectures
 
   const handleVideoPlay = (videoId: string) => {
-    localStorage.setItem("lastWatchedVideoId", videoId)
-  }
+    localStorage.setItem("lastWatchedVideoId", videoId);
+  };
 
   if (!currentVideo) {
     return (
       <div className="min-h-[calc(100vh-64px-120px)] flex items-center justify-center text-lg text-gray-600">
         Loading video...
       </div>
-    )
+    );
   }
 
   const upNextVideos = currentContent.lectures.filter(
-    (video) => video.category === currentVideo?.category && video.id !== currentVideo?.id,
-  )
+    (video) =>
+      video.category === currentVideo?.category && video.id !== currentVideo?.id
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -93,7 +100,10 @@ export default function StudentPlayerPage() {
           </h1>
         </div>
         <form action={signOut}>
-          <Button variant="outline" className="bg-red-500 text-white hover:bg-red-600">
+          <Button
+            variant="outline"
+            className="bg-red-500 text-white hover:bg-red-600"
+          >
             {currentContent.auth.studentDashboard.signOut}
           </Button>
         </form>
@@ -102,14 +112,19 @@ export default function StudentPlayerPage() {
       <div
         className={cn(
           "flex flex-col md:flex-row gap-8",
-          isArabic ? "md:flex-row-reverse" : "md:flex-row", // RTL support for columns
+          isArabic ? "md:flex-row-reverse" : "md:flex-row" // RTL support for columns
         )}
       >
         {/* Left Column (Video Player) / Top on Mobile */}
         <div className="w-full md:w-3/4">
-          <VideoPlayerComponent video={currentVideo} onVideoPlay={handleVideoPlay} />
+          <VideoPlayerComponent
+            video={currentVideo}
+            onVideoPlay={handleVideoPlay}
+          />
           <div className="mt-4">
-            <h2 className="font-montserrat text-2xl font-bold text-darkProfessional">{currentVideo.title}</h2>
+            <h2 className="font-montserrat text-2xl font-bold text-darkProfessional">
+              {currentVideo.title}
+            </h2>
             <p className="text-gray-700 mt-2">{currentVideo.description}</p>
           </div>
         </div>
@@ -130,11 +145,13 @@ export default function StudentPlayerPage() {
                 />
               ))
             ) : (
-              <p className="text-gray-600">{currentContent.auth.studentDashboard.noVideosWatched}</p>
+              <p className="text-gray-600">
+                {currentContent.auth.studentDashboard.noVideosWatched}
+              </p>
             )}
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

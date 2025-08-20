@@ -1,109 +1,181 @@
-"use client" // This page MUST be a client component to use hooks like useState and useEffect.
+"use client";
 
-import { createClient } from "@/lib/supabase/client" // Use the CLIENT-side Supabase client
-import { useRouter } from "next/navigation" // Use useRouter for client-side navigation
-import { signOutAdmin } from "@/app/dashboard/admin/actions"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useLanguage } from "@/components/language-context"
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Users, BookOpen, BarChart3 } from "lucide-react";
+import { ExamOverview } from "@/components/admin/exam-overview";
+import { CreateExam } from "@/components/admin/create-exam";
+import { GradeManagement } from "@/components/admin/grade-management";
+import { toast } from "sonner";
 
-// Import the admin components
-import DashboardOverview from "@/components/admin/dashboard-overview"
-import ContentManagement from "@/components/admin/content-management"
-import StudentManagement from "@/components/admin/student-management"
+type DashboardStats = {
+  totalExams: number;
+  activeExams: number;
+  totalSubmissions: number;
+  totalStudents: number;
+};
 
-export default function AdminDashboardPage() {
-  const { currentContent } = useLanguage()
-  const router = useRouter() // Use the router for client-side redirects
+export default function AdminDashboard() {
+  const [stats, setStats] = useState<DashboardStats>({
+    totalExams: 0,
+    activeExams: 0,
+    totalSubmissions: 0,
+    totalStudents: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  // --- FIX 1: ADD A LOADING STATE ---
-  // We will show a loading message until the security check is complete.
-  // This prevents the dashboard from flashing on the screen before the redirect.
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAuthorized, setIsAuthorized] = useState(false)
-
-  // --- FIX 2: CORRECTED SECURITY CHECK INSIDE useEffect ---
   useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+    fetchDashboardStats();
+  }, []);
 
-      // If no user is logged in, redirect immediately.
-      if (!user) {
-        router.push("/auth/login")
-        return // Stop execution
-      }
+  const fetchDashboardStats = async () => {
+    const supabase = createClient();
 
-      // If a user is logged in, check if they are an admin.
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("is_admin")
-        .eq("id", user.id)
-        .single()
+    try {
+      // Fetch exam stats
+      const { data: examStats } = await supabase
+        .from("exams")
+        .select("id, is_active");
 
-      // If they are NOT an admin, redirect to the homepage.
-      if (error || !profile?.is_admin) {
-        router.push("/")
-        return // Stop execution
-      }
+      const totalExams = examStats?.length || 0;
+      const activeExams =
+        examStats?.filter((exam) => exam.is_active).length || 0;
 
-      // If the checks pass, the user is authorized.
-      setIsAuthorized(true)
-      setIsLoading(false)
+      // Fetch submission stats
+      const { data: submissionStats } = await supabase
+        .from("submissions")
+        .select("id")
+        .eq("is_submitted", true);
+
+      const totalSubmissions = submissionStats?.length || 0;
+
+      // Fetch student stats
+      const { data: studentStats } = await supabase
+        .from("auth.users")
+        .select("id");
+
+      const totalStudents = studentStats?.length || 0;
+
+      setStats({
+        totalExams,
+        activeExams,
+        totalSubmissions,
+        totalStudents,
+      });
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      toast.error("Failed to load dashboard statistics");
+    } finally {
+      setIsLoading(false);
     }
-    checkAuth()
-  }, [router])
+  };
 
-  // --- FIX 3: CONDITIONAL RENDERING ---
-  // Do not render the dashboard until the security check is complete and successful.
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[calc(100vh-64px)] items-center justify-center">
-        <p>Verifying access...</p>
-      </div>
-    )
-  }
-
-  if (!isAuthorized) {
-    // This is a fallback, the redirect should have already happened.
-    return null
-  }
+  const refreshStats = () => {
+    fetchDashboardStats();
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-montserrat text-3xl font-extrabold text-purple">
-          {currentContent.auth.adminDashboard.title}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-teal-600 mb-2">
+          Admin Dashboard
         </h1>
-        <form action={signOutAdmin}>
-          <Button variant="outline" className="bg-red-500 text-white hover:bg-red-600">
-            {currentContent.auth.adminDashboard.signOut}
-          </Button>
-        </form>
+        <p className="text-muted-foreground">
+          Manage exams, students, and view performance analytics
+        </p>
       </div>
 
-      <Tabs defaultValue="dashboard" className="w-full">
+      {/* Dashboard Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Exams</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-teal-600">
+              {stats.totalExams}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              <Badge variant="secondary" className="text-xs">
+                {stats.activeExams} active
+              </Badge>
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Submissions
+            </CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">
+              {stats.totalSubmissions}
+            </div>
+            <p className="text-xs text-muted-foreground">Completed exams</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Students
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {stats.totalStudents}
+            </div>
+            <p className="text-xs text-muted-foreground">Registered users</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Average Score</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">85%</div>
+            <p className="text-xs text-muted-foreground">Across all exams</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="dashboard">{currentContent.auth.adminDashboard.tabs.dashboard}</TabsTrigger>
-          <TabsTrigger value="content-management">
-            {currentContent.auth.adminDashboard.tabs.contentManagement}
-          </TabsTrigger>
-          <TabsTrigger value="student-management">
-            {currentContent.auth.adminDashboard.tabs.studentManagement}
-          </TabsTrigger>
+          <TabsTrigger value="overview">Exam Overview</TabsTrigger>
+          <TabsTrigger value="create">Create Exam</TabsTrigger>
+          <TabsTrigger value="grades">Grade Management</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="mt-6">
-          <DashboardOverview />
+        <TabsContent value="overview" className="space-y-6">
+          <ExamOverview onStatsChange={refreshStats} />
         </TabsContent>
-        <TabsContent value="content-management" className="mt-6">
-          <ContentManagement />
+
+        <TabsContent value="create" className="space-y-6">
+          <CreateExam onExamCreated={refreshStats} />
         </TabsContent>
-        <TabsContent value="student-management" className="mt-6">
-          <StudentManagement />
+
+        <TabsContent value="grades" className="space-y-6">
+          <GradeManagement />
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

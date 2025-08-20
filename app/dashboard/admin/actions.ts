@@ -25,52 +25,6 @@ export type Profile = {
 }
 
 // --- Dashboard Stats (Prompt 6) ---
-export async function fetchAdminDashboardStats() {
-  const supabase = await createClient()
-
-  // Total Students
-  const { count: totalStudents, error: studentsError } = await supabase
-    .from("profiles")
-    .select("id", { count: "exact" })
-    .eq("is_admin", false)
-
-  if (studentsError) {
-    console.error("Error fetching total students:", studentsError.message)
-    return { totalStudents: 0, totalVideos: 0, newSignups30Days: 0, error: studentsError.message }
-  }
-
-  // Total Videos
-  const { count: totalVideos, error: videosError } = await supabase
-    .from("content_items")
-    .select("id", { count: "exact" })
-
-  if (videosError) {
-    console.error("Error fetching total videos:", videosError.message)
-    return { totalStudents: 0, totalVideos: 0, newSignups30Days: 0, error: videosError.message }
-  }
-
-  // New Sign-ups (last 30 days)
-  const thirtyDaysAgo = new Date()
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-  const { count: newSignups30Days, error: signupsError } = await supabase
-    .from("profiles")
-    .select("id", { count: "exact" })
-    .eq("is_admin", false)
-    .gte("created_at", thirtyDaysAgo.toISOString())
-
-  if (signupsError) {
-    console.error("Error fetching new sign-ups:", signupsError.message)
-    return { totalStudents: 0, totalVideos: 0, newSignups30Days: 0, error: signupsError.message }
-  }
-
-  return {
-    totalStudents: totalStudents || 0,
-    totalVideos: totalVideos || 0,
-    newSignups30Days: newSignups30Days || 0,
-    error: null,
-  }
-}
 
 // --- Content Management (Prompt 2 & 3) ---
 export async function fetchContentItems(): Promise<{ data: ContentItem[] | null; error: string | null }> {
@@ -215,4 +169,52 @@ export async function signOutAdmin() {
   const supabase = await createClient()
   await supabase.auth.signOut()
   redirect("/auth/login")
+}
+
+// --- Additional Admin Actions ---
+export async function fetchAdminDashboardStats() {
+  const supabase = await createClient()
+
+  // Total Students
+  const { count: totalStudents, error: studentsError } = await supabase
+    .from("profiles")
+    .select("id", { count: "exact" })
+    .eq("is_admin", false)
+
+  if (studentsError) {
+    console.error("Error fetching total students:", studentsError.message)
+    return { totalStudents: 0, totalVideos: 0, newSignups30Days: 0, error: studentsError.message }
+  }
+
+  // Total Videos
+  const { count: totalVideos, error: videosError } = await supabase
+    .from("content_items")
+    .select("id", { count: "exact" })
+
+  if (videosError) {
+    console.error("Error fetching total videos:", videosError.message)
+    return { totalStudents: 0, totalVideos: 0, newSignups30Days: 0, error: videosError.message }
+  }
+
+  // New Sign-ups (last 30 days)
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const { count: newSignups30Days, error: signupsError } = await supabase
+    .from("profiles")
+    .select("id", { count: "exact" })
+    .eq("is_admin", false)
+    .gte("created_at", thirtyDaysAgo.toISOString())
+
+  if (signupsError) {
+    console.error("Error fetching new sign-ups:", signupsError.message)
+    return { totalStudents: 0, totalVideos: 0, newSignups30Days: 0, error: signupsError.message }
+  }
+
+  return {
+    totalStudents: totalStudents || 0,
+    totalVideos: totalVideos || 0,
+    newSignups30Days: newSignups30Days || 0,
+    error: null,
+  }
 }

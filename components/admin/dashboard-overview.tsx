@@ -1,36 +1,36 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useLanguage } from "@/components/language-context"
-import { useEffect, useState } from "react"
-import { fetchAdminDashboardStats } from "@/app/dashboard/admin/actions"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLanguage } from "@/components/language-context";
+import { useEffect, useState } from "react";
+import { fetchAdminDashboardStats } from "@/app/dashboard/admin/actions";
 
 interface DashboardStats {
-  totalStudents: number
-  totalVideos: number
-  newSignups30Days: number
-  error: string | null
+  totalStudents: number;
+  totalVideos: number;
+  newSignups30Days: number;
+  error: string | null;
 }
 
 export default function DashboardOverview() {
-  const { currentContent } = useLanguage()
+  const { currentContent } = useLanguage();
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 0,
     totalVideos: 0,
     newSignups30Days: 0,
     error: null,
-  })
-  const [loading, setLoading] = useState(true)
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getStats = async () => {
-      setLoading(true)
-      const result = await fetchAdminDashboardStats()
-      setStats(result)
-      setLoading(false)
-    }
-    getStats()
-  }, [])
+      setLoading(true);
+      const result = await fetchAdminDashboardStats();
+      setStats(result);
+      setLoading(false);
+    };
+    getStats();
+  }, []);
 
   if (loading) {
     return (
@@ -42,7 +42,9 @@ export default function DashboardOverview() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-inter text-2xl font-bold text-neutral-dark">Loading...</div>
+            <div className="font-inter text-2xl font-bold text-neutral-dark">
+              Loading...
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -52,7 +54,9 @@ export default function DashboardOverview() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-inter text-2xl font-bold text-neutral-dark">Loading...</div>
+            <div className="font-inter text-2xl font-bold text-neutral-dark">
+              Loading...
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -62,15 +66,21 @@ export default function DashboardOverview() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-inter text-2xl font-bold text-neutral-dark">Loading...</div>
+            <div className="font-inter text-2xl font-bold text-neutral-dark">
+              Loading...
+            </div>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (stats.error) {
-    return <div className="text-red-500">Error loading dashboard stats: {stats.error}</div>
+    return (
+      <div className="text-red-500">
+        Error loading dashboard stats: {stats.error}
+      </div>
+    );
   }
 
   return (
@@ -82,7 +92,9 @@ export default function DashboardOverview() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="font-inter text-2xl font-bold text-neutral-dark">{stats.totalStudents}</div>
+          <div className="font-inter text-2xl font-bold text-neutral-dark">
+            {stats.totalStudents}
+          </div>
         </CardContent>
       </Card>
       <Card>
@@ -92,7 +104,9 @@ export default function DashboardOverview() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="font-inter text-2xl font-bold text-neutral-dark">{stats.totalVideos}</div>
+          <div className="font-inter text-2xl font-bold text-neutral-dark">
+            {stats.totalVideos}
+          </div>
         </CardContent>
       </Card>
       <Card>
@@ -102,9 +116,11 @@ export default function DashboardOverview() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="font-inter text-2xl font-bold text-neutral-dark">{stats.newSignups30Days}</div>
+          <div className="font-inter text-2xl font-bold text-neutral-dark">
+            {stats.newSignups30Days}
+          </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

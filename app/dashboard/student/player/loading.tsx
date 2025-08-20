@@ -1,3 +1,4 @@
 export default function Loading() {
-  return null
+  // Placeholder for loading animation or message
+  return <div>Loading...</div>;
 }
