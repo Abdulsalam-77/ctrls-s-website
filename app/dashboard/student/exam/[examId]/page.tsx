@@ -1,58 +1,38 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import {
-  Clock,
-  ChevronLeft,
-  ChevronRight,
-  Send,
-  AlertTriangle,
-} from "lucide-react";
+import { Clock, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 type Question = {
   id: string;
   question_text: string;
-  question_type: "mcq" | "true_false" | "open_ended";
+  question_type: "multiple_choice" | "true_false" | "open_ended";
+  options?: string[];
+  correct_answer?: string;
   points: number;
-  order_index: number;
-  options: QuestionOption[];
-};
-
-type QuestionOption = {
-  id: string;
-  option_text: string;
-  option_order: number;
 };
 
 type Exam = {
   id: string;
   title: string;
-  description: string | null;
-  duration_minutes: number;
-  start_date: string | null;
-  end_date: string | null;
+  description?: string;
+  duration_minutes?: number;
+  total_points: number;
+  questions: Question[];
 };
 
 type Answer = {
-  question_id: string;
-  answer_text?: string;
-  selected_option_id?: string;
+  questionId: string;
+  answer: string;
 };
 
 export default function ExamPage() {
@@ -61,246 +41,145 @@ export default function ExamPage() {
   const examId = params.examId as string;
 
   const [exam, setExam] = useState<Exam | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [answers, setAnswers] = useState<Record<string, Answer>>({});
+  const [answers, setAnswers] = useState<Answer[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchExamData();
+    if (examId) {
+      fetchExam();
+    }
   }, [examId]);
 
-  // Timer effect
   useEffect(() => {
-    if (timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && exam && submissionId) {
-      handleSubmitExam(true); // Auto-submit when time runs out
+    if (exam?.duration_minutes && timeRemaining === null) {
+      setTimeRemaining(exam.duration_minutes * 60); // Convert to seconds
     }
-  }, [timeLeft, exam, submissionId]);
+  }, [exam]);
 
-  // Auto-save effect
   useEffect(() => {
-    if (submissionId && Object.keys(answers).length > 0) {
-      const autoSaveTimer = setTimeout(() => {
-        saveAnswers();
-      }, 2000); // Auto-save every 2 seconds after changes
+    if (timeRemaining !== null && timeRemaining > 0) {
+      const timer = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev && prev <= 1) {
+            handleSubmitExam();
+            return 0;
+          }
+          return prev ? prev - 1 : 0;
+        });
+      }, 1000);
 
-      return () => clearTimeout(autoSaveTimer);
+      return () => clearInterval(timer);
     }
-  }, [answers, submissionId]);
+  }, [timeRemaining]);
 
-  const fetchExamData = async () => {
+  const fetchExam = async () => {
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push("/auth/login");
-      return;
-    }
-
-    // Check if user already submitted this exam
-    const { data: existingSubmission } = await supabase
-      .from("submissions")
-      .select("id")
-      .eq("exam_id", examId)
-      .eq("student_id", user.id)
-      .eq("is_submitted", true)
-      .single();
-
-    if (existingSubmission) {
-      toast.error("You have already submitted this exam");
-      router.push("/dashboard/student");
-      return;
-    }
-
-    // Fetch exam details
-    const { data: examData, error: examError } = await supabase
-      .from("exams")
-      .select("*")
-      .eq("id", examId)
-      .single();
-
-    if (examError || !examData) {
-      toast.error("Exam not found");
-      router.push("/dashboard/student");
-      return;
-    }
-
-    // Check exam availability
-    const now = new Date();
-    if (examData.start_date && now < new Date(examData.start_date)) {
-      toast.error("This exam is not yet available");
-      router.push("/dashboard/student");
-      return;
-    }
-
-    if (examData.end_date && now > new Date(examData.end_date)) {
-      toast.error("This exam has expired");
-      router.push("/dashboard/student");
-      return;
-    }
-
-    setExam(examData);
-    setTimeLeft(examData.duration_minutes * 60); // Convert to seconds
-
-    // Fetch questions
-    const { data: questionsData, error: questionsError } = await supabase
-      .from("questions")
-      .select(
-        `
-        *,
-        question_options(*)
-      `
-      )
-      .eq("exam_id", examId)
-      .order("order_index", { ascending: true });
-
-    if (questionsError || !questionsData) {
-      toast.error("Failed to load exam questions");
-      router.push("/dashboard/student");
-      return;
-    }
-
-    // Sort options by order - Fixed TypeScript error by adding proper types
-    const sortedQuestions = questionsData.map((q: any) => ({
-      ...q,
-      options: q.question_options.sort(
-        (a: any, b: any) => a.option_order - b.option_order
-      ),
-    }));
-
-    setQuestions(sortedQuestions);
-
-    // Create or get existing submission
-    const { data: submissionData, error: submissionError } = await supabase
-      .from("submissions")
-      .upsert({
-        exam_id: examId,
-        student_id: user.id,
-        started_at: new Date().toISOString(),
-        is_submitted: false,
-      })
-      .select()
-      .single();
-
-    if (submissionError || !submissionData) {
-      toast.error("Failed to start exam");
-      router.push("/dashboard/student");
-      return;
-    }
-
-    setSubmissionId(submissionData.id);
-
-    // Load existing answers if any
-    const { data: existingAnswers } = await supabase
-      .from("answers")
-      .select("*")
-      .eq("submission_id", submissionData.id);
-
-    if (existingAnswers) {
-      const answersMap: Record<string, Answer> = {};
-      // Fixed TypeScript error by adding proper type
-      existingAnswers.forEach((answer: any) => {
-        answersMap[answer.question_id] = {
-          question_id: answer.question_id,
-          answer_text: answer.answer_text,
-          selected_option_id: answer.selected_option_id,
-        };
-      });
-      setAnswers(answersMap);
-    }
-
-    setIsLoading(false);
-  };
-
-  const saveAnswers = async () => {
-    if (!submissionId) return;
-
-    const supabase = createClient();
-    const answersToSave = Object.values(answers).map((answer) => ({
-      submission_id: submissionId,
-      question_id: answer.question_id,
-      answer_text: answer.answer_text,
-      selected_option_id: answer.selected_option_id,
-    }));
-
-    await supabase.from("answers").upsert(answersToSave);
-  };
-
-  const handleAnswerChange = (
-    questionId: string,
-    type: "text" | "option",
-    value: string
-  ) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: {
-        question_id: questionId,
-        ...(type === "text"
-          ? { answer_text: value }
-          : { selected_option_id: value }),
-      },
-    }));
-  };
-
-  const handleSubmitExam = async (autoSubmit = false) => {
-    if (!submissionId || !exam) return;
-
-    if (!autoSubmit) {
-      const unansweredQuestions = questions.filter((q) => !answers[q.id]);
-      if (unansweredQuestions.length > 0) {
-        const confirm = window.confirm(
-          `You have ${unansweredQuestions.length} unanswered questions. Are you sure you want to submit?`
-        );
-        if (!confirm) return;
-      }
-    }
-
-    setIsSubmitting(true);
 
     try {
-      const supabase = createClient();
+      const { data: examData, error: examError } = await supabase
+        .from("exams")
+        .select("*")
+        .eq("id", examId)
+        .single();
 
-      // Save final answers
-      await saveAnswers();
+      if (examError) throw examError;
 
-      // Calculate time taken
-      const timeTaken = exam.duration_minutes - Math.floor(timeLeft / 60);
+      const { data: questionsData, error: questionsError } = await supabase
+        .from("questions")
+        .select("*")
+        .eq("exam_id", examId)
+        .order("created_at");
 
-      // Update submission as completed
-      const { error: updateError } = await supabase
+      if (questionsError) throw questionsError;
+
+      const formattedQuestions =
+        questionsData?.map((q: any) => ({
+          ...q,
+          options: q.options ? JSON.parse(q.options) : null,
+        })) || [];
+
+      setExam({
+        ...examData,
+        questions: formattedQuestions,
+      });
+
+      // Initialize answers array
+      setAnswers(
+        formattedQuestions.map((q: any) => ({
+          questionId: q.id,
+          answer: "",
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching exam:", error);
+      toast.error("Failed to load exam");
+      router.push("/dashboard/student");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAnswerChange = (questionId: string, answer: string) => {
+    setAnswers((prev) =>
+      prev.map((a) => (a.questionId === questionId ? { ...a, answer } : a))
+    );
+  };
+
+  const handleSubmitExam = async () => {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    const supabase = createClient();
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Calculate score
+      let totalScore = 0;
+      const gradedAnswers =
+        exam?.questions.map((q: any) => {
+          const userAnswer =
+            answers.find((a: any) => a.questionId === q.id)?.answer || "";
+          let isCorrect = false;
+          let points = 0;
+
+          if (q.question_type !== "open_ended" && q.correct_answer) {
+            isCorrect =
+              userAnswer.toLowerCase() === q.correct_answer.toLowerCase();
+            points = isCorrect ? q.points : 0;
+            totalScore += points;
+          }
+
+          return {
+            question_id: q.id,
+            user_answer: userAnswer,
+            is_correct: isCorrect,
+            points_earned: points,
+          };
+        }) || [];
+
+      // Submit exam
+      const { error: submissionError } = await supabase
         .from("submissions")
-        .update({
+        .insert({
+          exam_id: examId,
+          student_id: user.id,
+          answers: JSON.stringify(gradedAnswers),
+          score: totalScore,
+          total_possible: exam?.total_points || 0,
           submitted_at: new Date().toISOString(),
           is_submitted: true,
-          time_taken_minutes: timeTaken,
-        })
-        .eq("id", submissionId);
+        });
 
-      if (updateError) throw updateError;
+      if (submissionError) throw submissionError;
 
-      // Auto-grade the submission
-      const { error: gradeError } = await supabase.rpc(
-        "auto_grade_submission",
-        {
-          submission_id_param: submissionId,
-        }
-      );
-
-      if (gradeError) console.error("Auto-grading error:", gradeError);
-
-      toast.success(
-        autoSubmit
-          ? "Exam auto-submitted due to time limit"
-          : "Exam submitted successfully!"
-      );
+      toast.success("Exam submitted successfully!");
       router.push("/dashboard/student");
     } catch (error) {
       console.error("Error submitting exam:", error);
@@ -311,238 +190,259 @@ export default function ExamPage() {
   };
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
+        .toString()
+        .padStart(2, "0")}`;
+    }
+    return `${minutes}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const getAnsweredCount = () => {
-    return Object.keys(answers).length;
-  };
-
-  const isQuestionAnswered = (questionId: string) => {
-    return !!answers[questionId];
+  const getProgressPercentage = () => {
+    const answeredQuestions = answers.filter(
+      (a: any) => a.answer.trim() !== ""
+    ).length;
+    return (answeredQuestions / (exam?.questions.length || 1)) * 100;
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
-        <p>Loading exam...</p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading exam...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (!exam || questions.length === 0) {
+  if (!exam) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
-        <p>Exam not found</p>
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="text-center py-8">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Exam Not Found</h2>
+            <p className="text-muted-foreground mb-4">
+              The exam you're looking for doesn't exist or has been removed.
+            </p>
+            <Button onClick={() => router.push("/dashboard/student")}>
+              Back to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const currentQuestion = exam.questions[currentQuestionIndex];
+  const currentAnswer =
+    answers.find((a: any) => a.questionId === currentQuestion?.id)?.answer ||
+    "";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-teal-600">{exam.title}</h1>
-              <p className="text-sm text-muted-foreground">
-                Question {currentQuestionIndex + 1} of {questions.length}
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                <span
-                  className={`text-lg font-semibold ${
-                    timeLeft < 300 ? "text-red-600" : "text-gray-700"
-                  }`}
-                >
-                  {formatTime(timeLeft)}
-                </span>
-              </div>
-              {timeLeft < 300 && (
-                <Badge variant="destructive" className="animate-pulse">
-                  <AlertTriangle className="h-3 w-3 mr-1" />
-                  Time Running Out
-                </Badge>
-              )}
-            </div>
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-teal-600">{exam.title}</h1>
+            {exam.description && (
+              <p className="text-muted-foreground">{exam.description}</p>
+            )}
           </div>
-          <Progress value={progress} className="mt-2" />
+          {timeRemaining !== null && (
+            <div className="flex items-center gap-2 text-lg font-semibold">
+              <Clock className="h-5 w-5" />
+              <span
+                className={
+                  timeRemaining < 300 ? "text-red-500" : "text-teal-600"
+                }
+              >
+                {formatTime(timeRemaining)}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Progress */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>
+              Progress:{" "}
+              {answers.filter((a: any) => a.answer.trim() !== "").length} of{" "}
+              {exam.questions.length} answered
+            </span>
+            <span>{Math.round(getProgressPercentage())}%</span>
+          </div>
+          <Progress value={getProgressPercentage()} className="h-2" />
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Question Navigation Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-24">
-              <CardHeader>
-                <CardTitle className="text-sm">Question Navigation</CardTitle>
-                <CardDescription>
-                  {getAnsweredCount()}/{questions.length} answered
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-5 lg:grid-cols-4 gap-2">
-                  {questions.map((question, index) => (
+      {/* Question Navigation */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Question List Sidebar */}
+        <div className="lg:col-span-1">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Questions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-5 lg:grid-cols-1 gap-2">
+                {exam.questions.map((q: any, index: number) => {
+                  const isAnswered =
+                    answers
+                      .find((a: any) => a.questionId === q.id)
+                      ?.answer.trim() !== "";
+                  const isCurrent = index === currentQuestionIndex;
+
+                  return (
                     <Button
-                      key={question.id}
-                      variant={
-                        index === currentQuestionIndex ? "default" : "outline"
-                      }
+                      key={q.id}
+                      variant={isCurrent ? "default" : "outline"}
                       size="sm"
-                      className={`h-8 w-8 p-0 ${
-                        isQuestionAnswered(question.id)
-                          ? "bg-green-100 border-green-300 text-green-700 hover:bg-green-200"
-                          : ""
+                      className={`relative ${
+                        isAnswered ? "bg-green-100 border-green-300" : ""
                       }`}
                       onClick={() => setCurrentQuestionIndex(index)}
                     >
                       {index + 1}
+                      {isAnswered && (
+                        <CheckCircle className="h-3 w-3 absolute -top-1 -right-1 text-green-600" />
+                      )}
                     </Button>
-                  ))}
-                </div>
-                <div className="mt-4 space-y-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
-                    <span>Answered</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-white border border-gray-300 rounded"></div>
-                    <span>Not answered</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                    <span>Current</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          {/* Main Question Area */}
-          <div className="lg:col-span-3">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">
-                      Question {currentQuestionIndex + 1}
-                    </Badge>
-                    <Badge variant="secondary">
-                      {currentQuestion.points} point
-                      {currentQuestion.points !== 1 ? "s" : ""}
-                    </Badge>
-                    <Badge variant="outline" className="capitalize">
-                      {currentQuestion.question_type.replace("_", " ")}
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h2 className="text-lg font-medium mb-4">
-                    {currentQuestion.question_text}
-                  </h2>
+        {/* Current Question */}
+        <div className="lg:col-span-3">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-lg">
+                  Question {currentQuestionIndex + 1} of {exam.questions.length}
+                </CardTitle>
+                <span className="text-sm text-muted-foreground">
+                  {currentQuestion?.points} points
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-lg font-medium">
+                {currentQuestion?.question_text}
+              </div>
 
-                  {/* MCQ and True/False Questions */}
-                  {(currentQuestion.question_type === "mcq" ||
-                    currentQuestion.question_type === "true_false") && (
-                    <RadioGroup
-                      value={
-                        answers[currentQuestion.id]?.selected_option_id || ""
-                      }
-                      onValueChange={(value) =>
-                        handleAnswerChange(currentQuestion.id, "option", value)
-                      }
-                    >
-                      {currentQuestion.options.map((option) => (
+              {/* Answer Input */}
+              <div className="space-y-4">
+                {currentQuestion?.question_type === "multiple_choice" && (
+                  <RadioGroup
+                    value={currentAnswer}
+                    onValueChange={(value) =>
+                      handleAnswerChange(currentQuestion.id, value)
+                    }
+                  >
+                    {currentQuestion.options?.map(
+                      (option: any, index: number) => (
                         <div
-                          key={option.id}
-                          className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50"
+                          key={index}
+                          className="flex items-center space-x-2"
                         >
-                          <RadioGroupItem value={option.id} id={option.id} />
+                          <RadioGroupItem
+                            value={option}
+                            id={`option-${index}`}
+                          />
                           <Label
-                            htmlFor={option.id}
+                            htmlFor={`option-${index}`}
                             className="flex-1 cursor-pointer"
                           >
-                            {option.option_text}
+                            {option}
                           </Label>
                         </div>
-                      ))}
-                    </RadioGroup>
-                  )}
-
-                  {/* Open-ended Questions */}
-                  {currentQuestion.question_type === "open_ended" && (
-                    <Textarea
-                      value={answers[currentQuestion.id]?.answer_text || ""}
-                      onChange={(e) =>
-                        handleAnswerChange(
-                          currentQuestion.id,
-                          "text",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Type your answer here..."
-                      rows={6}
-                      className="w-full"
-                    />
-                  )}
-                </div>
-
-                {/* Navigation Buttons */}
-                <div className="flex justify-between pt-4 border-t">
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      setCurrentQuestionIndex(
-                        Math.max(0, currentQuestionIndex - 1)
                       )
-                    }
-                    disabled={currentQuestionIndex === 0}
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-2" />
-                    Previous
-                  </Button>
-
-                  <div className="flex gap-2">
-                    {currentQuestionIndex === questions.length - 1 ? (
-                      <Button
-                        onClick={() => handleSubmitExam()}
-                        disabled={isSubmitting}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <Send className="h-4 w-4 mr-2" />
-                        {isSubmitting ? "Submitting..." : "Submit Exam"}
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={() =>
-                          setCurrentQuestionIndex(
-                            Math.min(
-                              questions.length - 1,
-                              currentQuestionIndex + 1
-                            )
-                          )
-                        }
-                      >
-                        Next
-                        <ChevronRight className="h-4 w-4 ml-2" />
-                      </Button>
                     )}
-                  </div>
+                  </RadioGroup>
+                )}
+
+                {currentQuestion?.question_type === "true_false" && (
+                  <RadioGroup
+                    value={currentAnswer}
+                    onValueChange={(value) =>
+                      handleAnswerChange(currentQuestion.id, value)
+                    }
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="true" id="true" />
+                      <Label htmlFor="true" className="cursor-pointer">
+                        True
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="false" id="false" />
+                      <Label htmlFor="false" className="cursor-pointer">
+                        False
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                )}
+
+                {currentQuestion?.question_type === "open_ended" && (
+                  <Textarea
+                    value={currentAnswer}
+                    onChange={(e) =>
+                      handleAnswerChange(currentQuestion.id, e.target.value)
+                    }
+                    placeholder="Type your answer here..."
+                    className="min-h-[120px]"
+                  />
+                )}
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="flex justify-between pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setCurrentQuestionIndex(
+                      Math.max(0, currentQuestionIndex - 1)
+                    )
+                  }
+                  disabled={currentQuestionIndex === 0}
+                >
+                  Previous
+                </Button>
+
+                <div className="flex gap-2">
+                  {currentQuestionIndex < exam.questions.length - 1 ? (
+                    <Button
+                      onClick={() =>
+                        setCurrentQuestionIndex(currentQuestionIndex + 1)
+                      }
+                    >
+                      Next
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleSubmitExam}
+                      disabled={isSubmitting}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {isSubmitting ? "Submitting..." : "Submit Exam"}
+                    </Button>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
