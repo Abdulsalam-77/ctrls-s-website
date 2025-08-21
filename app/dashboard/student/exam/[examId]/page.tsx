@@ -1,96 +1,108 @@
-"use client"
+"use client";
 
-import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Clock, ChevronLeft, ChevronRight, Send, AlertTriangle } from "lucide-react"
-import { toast } from "sonner"
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import {
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Send,
+  AlertTriangle,
+} from "lucide-react";
+import { toast } from "sonner";
 
 type Question = {
-  id: string
-  question_text: string
-  question_type: "mcq" | "true_false" | "open_ended"
-  points: number
-  order_index: number
-  options: QuestionOption[]
-}
+  id: string;
+  question_text: string;
+  question_type: "mcq" | "true_false" | "open_ended";
+  points: number;
+  order_index: number;
+  options: QuestionOption[];
+};
 
 type QuestionOption = {
-  id: string
-  option_text: string
-  option_order: number
-}
+  id: string;
+  option_text: string;
+  option_order: number;
+};
 
 type Exam = {
-  id: string
-  title: string
-  description: string | null
-  duration_minutes: number
-  start_date: string | null
-  end_date: string | null
-}
+  id: string;
+  title: string;
+  description: string | null;
+  duration_minutes: number;
+  start_date: string | null;
+  end_date: string | null;
+};
 
 type Answer = {
-  question_id: string
-  answer_text?: string
-  selected_option_id?: string
-}
+  question_id: string;
+  answer_text?: string;
+  selected_option_id?: string;
+};
 
 export default function ExamPage() {
-  const params = useParams()
-  const router = useRouter()
-  const examId = params.examId as string
+  const params = useParams();
+  const router = useRouter();
+  const examId = params.examId as string;
 
-  const [exam, setExam] = useState<Exam | null>(null)
-  const [questions, setQuestions] = useState<Question[]>([])
-  const [answers, setAnswers] = useState<Record<string, Answer>>({})
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [timeLeft, setTimeLeft] = useState<number>(0)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submissionId, setSubmissionId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [exam, setExam] = useState<Exam | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [answers, setAnswers] = useState<Record<string, Answer>>({});
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchExamData()
-  }, [examId])
+    fetchExamData();
+  }, [examId]);
 
   // Timer effect
   useEffect(() => {
     if (timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
     } else if (timeLeft === 0 && exam && submissionId) {
-      handleSubmitExam(true) // Auto-submit when time runs out
+      handleSubmitExam(true); // Auto-submit when time runs out
     }
-  }, [timeLeft, exam, submissionId])
+  }, [timeLeft, exam, submissionId]);
 
   // Auto-save effect
   useEffect(() => {
     if (submissionId && Object.keys(answers).length > 0) {
       const autoSaveTimer = setTimeout(() => {
-        saveAnswers()
-      }, 2000) // Auto-save every 2 seconds after changes
+        saveAnswers();
+      }, 2000); // Auto-save every 2 seconds after changes
 
-      return () => clearTimeout(autoSaveTimer)
+      return () => clearTimeout(autoSaveTimer);
     }
-  }, [answers, submissionId])
+  }, [answers, submissionId]);
 
   const fetchExamData = async () => {
-    const supabase = createClient()
+    const supabase = createClient();
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
     if (!user) {
-      router.push("/auth/login")
-      return
+      router.push("/auth/login");
+      return;
     }
 
     // Check if user already submitted this exam
@@ -100,63 +112,71 @@ export default function ExamPage() {
       .eq("exam_id", examId)
       .eq("student_id", user.id)
       .eq("is_submitted", true)
-      .single()
+      .single();
 
     if (existingSubmission) {
-      toast.error("You have already submitted this exam")
-      router.push("/dashboard/student")
-      return
+      toast.error("You have already submitted this exam");
+      router.push("/dashboard/student");
+      return;
     }
 
     // Fetch exam details
-    const { data: examData, error: examError } = await supabase.from("exams").select("*").eq("id", examId).single()
+    const { data: examData, error: examError } = await supabase
+      .from("exams")
+      .select("*")
+      .eq("id", examId)
+      .single();
 
     if (examError || !examData) {
-      toast.error("Exam not found")
-      router.push("/dashboard/student")
-      return
+      toast.error("Exam not found");
+      router.push("/dashboard/student");
+      return;
     }
 
     // Check exam availability
-    const now = new Date()
+    const now = new Date();
     if (examData.start_date && now < new Date(examData.start_date)) {
-      toast.error("This exam is not yet available")
-      router.push("/dashboard/student")
-      return
+      toast.error("This exam is not yet available");
+      router.push("/dashboard/student");
+      return;
     }
 
     if (examData.end_date && now > new Date(examData.end_date)) {
-      toast.error("This exam has expired")
-      router.push("/dashboard/student")
-      return
+      toast.error("This exam has expired");
+      router.push("/dashboard/student");
+      return;
     }
 
-    setExam(examData)
-    setTimeLeft(examData.duration_minutes * 60) // Convert to seconds
+    setExam(examData);
+    setTimeLeft(examData.duration_minutes * 60); // Convert to seconds
 
     // Fetch questions
     const { data: questionsData, error: questionsError } = await supabase
       .from("questions")
-      .select(`
+      .select(
+        `
         *,
         question_options(*)
-      `)
+      `
+      )
       .eq("exam_id", examId)
-      .order("order_index", { ascending: true })
+      .order("order_index", { ascending: true });
 
     if (questionsError || !questionsData) {
-      toast.error("Failed to load exam questions")
-      router.push("/dashboard/student")
-      return
+      toast.error("Failed to load exam questions");
+      router.push("/dashboard/student");
+      return;
     }
 
-    // Sort options by order
-    const sortedQuestions = questionsData.map((q) => ({
+    // Sort options by order - Fixed TypeScript error by adding proper types
+    const sortedQuestions = questionsData.map((q: any) => ({
       ...q,
-      options: q.question_options.sort((a, b) => a.option_order - b.option_order),
-    }))
+      options: q.question_options.sort(
+        (a: any, b: any) => a.option_order - b.option_order
+      ),
+    }));
 
-    setQuestions(sortedQuestions)
+    setQuestions(sortedQuestions);
 
     // Create or get existing submission
     const { data: submissionData, error: submissionError } = await supabase
@@ -168,81 +188,91 @@ export default function ExamPage() {
         is_submitted: false,
       })
       .select()
-      .single()
+      .single();
 
     if (submissionError || !submissionData) {
-      toast.error("Failed to start exam")
-      router.push("/dashboard/student")
-      return
+      toast.error("Failed to start exam");
+      router.push("/dashboard/student");
+      return;
     }
 
-    setSubmissionId(submissionData.id)
+    setSubmissionId(submissionData.id);
 
     // Load existing answers if any
-    const { data: existingAnswers } = await supabase.from("answers").select("*").eq("submission_id", submissionData.id)
+    const { data: existingAnswers } = await supabase
+      .from("answers")
+      .select("*")
+      .eq("submission_id", submissionData.id);
 
     if (existingAnswers) {
-      const answersMap: Record<string, Answer> = {}
-      existingAnswers.forEach((answer) => {
+      const answersMap: Record<string, Answer> = {};
+      // Fixed TypeScript error by adding proper type
+      existingAnswers.forEach((answer: any) => {
         answersMap[answer.question_id] = {
           question_id: answer.question_id,
           answer_text: answer.answer_text,
           selected_option_id: answer.selected_option_id,
-        }
-      })
-      setAnswers(answersMap)
+        };
+      });
+      setAnswers(answersMap);
     }
 
-    setIsLoading(false)
-  }
+    setIsLoading(false);
+  };
 
   const saveAnswers = async () => {
-    if (!submissionId) return
+    if (!submissionId) return;
 
-    const supabase = createClient()
+    const supabase = createClient();
     const answersToSave = Object.values(answers).map((answer) => ({
       submission_id: submissionId,
       question_id: answer.question_id,
       answer_text: answer.answer_text,
       selected_option_id: answer.selected_option_id,
-    }))
+    }));
 
-    await supabase.from("answers").upsert(answersToSave)
-  }
+    await supabase.from("answers").upsert(answersToSave);
+  };
 
-  const handleAnswerChange = (questionId: string, type: "text" | "option", value: string) => {
+  const handleAnswerChange = (
+    questionId: string,
+    type: "text" | "option",
+    value: string
+  ) => {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: {
         question_id: questionId,
-        ...(type === "text" ? { answer_text: value } : { selected_option_id: value }),
+        ...(type === "text"
+          ? { answer_text: value }
+          : { selected_option_id: value }),
       },
-    }))
-  }
+    }));
+  };
 
   const handleSubmitExam = async (autoSubmit = false) => {
-    if (!submissionId || !exam) return
+    if (!submissionId || !exam) return;
 
     if (!autoSubmit) {
-      const unansweredQuestions = questions.filter((q) => !answers[q.id])
+      const unansweredQuestions = questions.filter((q) => !answers[q.id]);
       if (unansweredQuestions.length > 0) {
         const confirm = window.confirm(
-          `You have ${unansweredQuestions.length} unanswered questions. Are you sure you want to submit?`,
-        )
-        if (!confirm) return
+          `You have ${unansweredQuestions.length} unanswered questions. Are you sure you want to submit?`
+        );
+        if (!confirm) return;
       }
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
-      const supabase = createClient()
+      const supabase = createClient();
 
       // Save final answers
-      await saveAnswers()
+      await saveAnswers();
 
       // Calculate time taken
-      const timeTaken = exam.duration_minutes - Math.floor(timeLeft / 60)
+      const timeTaken = exam.duration_minutes - Math.floor(timeLeft / 60);
 
       // Update submission as completed
       const { error: updateError } = await supabase
@@ -252,47 +282,54 @@ export default function ExamPage() {
           is_submitted: true,
           time_taken_minutes: timeTaken,
         })
-        .eq("id", submissionId)
+        .eq("id", submissionId);
 
-      if (updateError) throw updateError
+      if (updateError) throw updateError;
 
       // Auto-grade the submission
-      const { error: gradeError } = await supabase.rpc("auto_grade_submission", {
-        submission_id_param: submissionId,
-      })
+      const { error: gradeError } = await supabase.rpc(
+        "auto_grade_submission",
+        {
+          submission_id_param: submissionId,
+        }
+      );
 
-      if (gradeError) console.error("Auto-grading error:", gradeError)
+      if (gradeError) console.error("Auto-grading error:", gradeError);
 
-      toast.success(autoSubmit ? "Exam auto-submitted due to time limit" : "Exam submitted successfully!")
-      router.push("/dashboard/student")
+      toast.success(
+        autoSubmit
+          ? "Exam auto-submitted due to time limit"
+          : "Exam submitted successfully!"
+      );
+      router.push("/dashboard/student");
     } catch (error) {
-      console.error("Error submitting exam:", error)
-      toast.error("Failed to submit exam")
+      console.error("Error submitting exam:", error);
+      toast.error("Failed to submit exam");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const getAnsweredCount = () => {
-    return Object.keys(answers).length
-  }
+    return Object.keys(answers).length;
+  };
 
   const isQuestionAnswered = (questionId: string) => {
-    return !!answers[questionId]
-  }
+    return !!answers[questionId];
+  };
 
   if (isLoading) {
     return (
       <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
         <p>Loading exam...</p>
       </div>
-    )
+    );
   }
 
   if (!exam || questions.length === 0) {
@@ -300,11 +337,11 @@ export default function ExamPage() {
       <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
         <p>Exam not found</p>
       </div>
-    )
+    );
   }
 
-  const currentQuestion = questions[currentQuestionIndex]
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100
+  const currentQuestion = questions[currentQuestionIndex];
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -321,7 +358,11 @@ export default function ExamPage() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                <span className={`text-lg font-semibold ${timeLeft < 300 ? "text-red-600" : "text-gray-700"}`}>
+                <span
+                  className={`text-lg font-semibold ${
+                    timeLeft < 300 ? "text-red-600" : "text-gray-700"
+                  }`}
+                >
                   {formatTime(timeLeft)}
                 </span>
               </div>
@@ -353,7 +394,9 @@ export default function ExamPage() {
                   {questions.map((question, index) => (
                     <Button
                       key={question.id}
-                      variant={index === currentQuestionIndex ? "default" : "outline"}
+                      variant={
+                        index === currentQuestionIndex ? "default" : "outline"
+                      }
                       size="sm"
                       className={`h-8 w-8 p-0 ${
                         isQuestionAnswered(question.id)
@@ -390,9 +433,12 @@ export default function ExamPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline">Question {currentQuestionIndex + 1}</Badge>
+                    <Badge variant="outline">
+                      Question {currentQuestionIndex + 1}
+                    </Badge>
                     <Badge variant="secondary">
-                      {currentQuestion.points} point{currentQuestion.points !== 1 ? "s" : ""}
+                      {currentQuestion.points} point
+                      {currentQuestion.points !== 1 ? "s" : ""}
                     </Badge>
                     <Badge variant="outline" className="capitalize">
                       {currentQuestion.question_type.replace("_", " ")}
@@ -402,13 +448,20 @@ export default function ExamPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <h2 className="text-lg font-medium mb-4">{currentQuestion.question_text}</h2>
+                  <h2 className="text-lg font-medium mb-4">
+                    {currentQuestion.question_text}
+                  </h2>
 
                   {/* MCQ and True/False Questions */}
-                  {(currentQuestion.question_type === "mcq" || currentQuestion.question_type === "true_false") && (
+                  {(currentQuestion.question_type === "mcq" ||
+                    currentQuestion.question_type === "true_false") && (
                     <RadioGroup
-                      value={answers[currentQuestion.id]?.selected_option_id || ""}
-                      onValueChange={(value) => handleAnswerChange(currentQuestion.id, "option", value)}
+                      value={
+                        answers[currentQuestion.id]?.selected_option_id || ""
+                      }
+                      onValueChange={(value) =>
+                        handleAnswerChange(currentQuestion.id, "option", value)
+                      }
                     >
                       {currentQuestion.options.map((option) => (
                         <div
@@ -416,7 +469,10 @@ export default function ExamPage() {
                           className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50"
                         >
                           <RadioGroupItem value={option.id} id={option.id} />
-                          <Label htmlFor={option.id} className="flex-1 cursor-pointer">
+                          <Label
+                            htmlFor={option.id}
+                            className="flex-1 cursor-pointer"
+                          >
                             {option.option_text}
                           </Label>
                         </div>
@@ -428,7 +484,13 @@ export default function ExamPage() {
                   {currentQuestion.question_type === "open_ended" && (
                     <Textarea
                       value={answers[currentQuestion.id]?.answer_text || ""}
-                      onChange={(e) => handleAnswerChange(currentQuestion.id, "text", e.target.value)}
+                      onChange={(e) =>
+                        handleAnswerChange(
+                          currentQuestion.id,
+                          "text",
+                          e.target.value
+                        )
+                      }
                       placeholder="Type your answer here..."
                       rows={6}
                       className="w-full"
@@ -440,7 +502,11 @@ export default function ExamPage() {
                 <div className="flex justify-between pt-4 border-t">
                   <Button
                     variant="outline"
-                    onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+                    onClick={() =>
+                      setCurrentQuestionIndex(
+                        Math.max(0, currentQuestionIndex - 1)
+                      )
+                    }
                     disabled={currentQuestionIndex === 0}
                   >
                     <ChevronLeft className="h-4 w-4 mr-2" />
@@ -460,7 +526,12 @@ export default function ExamPage() {
                     ) : (
                       <Button
                         onClick={() =>
-                          setCurrentQuestionIndex(Math.min(questions.length - 1, currentQuestionIndex + 1))
+                          setCurrentQuestionIndex(
+                            Math.min(
+                              questions.length - 1,
+                              currentQuestionIndex + 1
+                            )
+                          )
                         }
                       >
                         Next
@@ -475,5 +546,5 @@ export default function ExamPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
