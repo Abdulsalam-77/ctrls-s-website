@@ -6,6 +6,9 @@ DROP FUNCTION IF EXISTS public.handle_new_user CASCADE;
 DROP TABLE IF EXISTS public.student_content_assignments CASCADE;
 DROP TABLE IF EXISTS public.content_items CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
+DROP TABLE IF EXISTS public.exams CASCADE;
+DROP TABLE IF EXISTS public.exam_questions CASCADE;
+DROP TABLE IF EXISTS public.exam_submissions CASCADE;
 
 -- Create a public.profiles table to store user metadata, linked to auth.users
 CREATE TABLE public.profiles (
@@ -51,7 +54,6 @@ CREATE POLICY "Authenticated users can view content_items." ON public.content_it
 CREATE POLICY "Admins can manage content_items." ON public.content_items
   FOR ALL USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = TRUE));
 
-
 -- Create a public.student_content_assignments table to link students to specific content
 CREATE TABLE public.student_content_assignments (
   student_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -85,3 +87,82 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Create exams table
+CREATE TABLE public.exams (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT,
+  status TEXT NOT NULL DEFAULT 'draft', -- 'draft', 'active', 'inactive', 'completed'
+  start_date TIMESTAMP WITH TIME ZONE,
+  end_date TIMESTAMP WITH TIME ZONE,
+  duration_minutes INTEGER NOT NULL DEFAULT 60,
+  created_by uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS for exams
+ALTER TABLE public.exams ENABLE ROW LEVEL SECURITY;
+
+-- Policy for exams: All authenticated users can view active exams
+CREATE POLICY "Authenticated users can view active exams." ON public.exams
+  FOR SELECT USING (auth.role() = 'authenticated' AND status = 'active');
+
+-- Policy for exams: Admins can manage all exams
+CREATE POLICY "Admins can manage exams." ON public.exams
+  FOR ALL USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = TRUE));
+
+-- Create exam_questions table
+CREATE TABLE public.exam_questions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  exam_id uuid REFERENCES public.exams(id) ON DELETE CASCADE,
+  question_text TEXT NOT NULL,
+  question_type TEXT NOT NULL DEFAULT 'multiple_choice', -- 'multiple_choice', 'true_false', 'short_answer'
+  options JSONB, -- For multiple choice options
+  correct_answer TEXT NOT NULL,
+  points INTEGER NOT NULL DEFAULT 1,
+  order_index INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS for exam_questions
+ALTER TABLE public.exam_questions ENABLE ROW LEVEL SECURITY;
+
+-- Policy for exam_questions: Students can view questions for active exams
+CREATE POLICY "Students can view questions for active exams." ON public.exam_questions
+  FOR SELECT USING (
+    auth.role() = 'authenticated' AND 
+    EXISTS (SELECT 1 FROM public.exams WHERE id = exam_id AND status = 'active')
+  );
+
+-- Policy for exam_questions: Admins can manage all exam questions
+CREATE POLICY "Admins can manage exam_questions." ON public.exam_questions
+  FOR ALL USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = TRUE));
+
+-- Create exam_submissions table
+CREATE TABLE public.exam_submissions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  exam_id uuid REFERENCES public.exams(id) ON DELETE CASCADE,
+  student_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
+  answers JSONB NOT NULL, -- Store student answers as JSON
+  score DECIMAL(5,2), -- Score out of total points
+  submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  time_taken INTEGER, -- Time taken in minutes
+  UNIQUE(exam_id, student_id) -- One submission per student per exam
+);
+
+-- Enable RLS for exam_submissions
+ALTER TABLE public.exam_submissions ENABLE ROW LEVEL SECURITY;
+
+-- Policy for exam_submissions: Students can view their own submissions
+CREATE POLICY "Students can view their own submissions." ON public.exam_submissions
+  FOR SELECT USING (auth.uid() = student_id);
+
+-- Policy for exam_submissions: Students can insert their own submissions
+CREATE POLICY "Students can submit exams." ON public.exam_submissions
+  FOR INSERT WITH CHECK (auth.uid() = student_id);
+
+-- Policy for exam_submissions: Admins can view and manage all submissions
+CREATE POLICY "Admins can manage exam_submissions." ON public.exam_submissions
+  FOR ALL USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = TRUE));
