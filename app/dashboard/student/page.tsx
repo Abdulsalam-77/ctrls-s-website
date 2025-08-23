@@ -1,60 +1,46 @@
-"use client"
-
-import { createClient } from "@/lib/supabase/client" // Use client-side Supabase client
-import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 import { signOut } from "@/app/auth/actions"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { useLanguage } from "@/components/language-context" // Use client-side language context
 import VideoThumbnailCard from "@/components/video-thumbnail-card"
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import NextImage from "next/image" // Explicitly import NextImage from next/image
-import HorizontalScrollCarousel from "@/components/horizontal-scroll-carousel" // Import the new component
+import HorizontalScrollCarousel from "@/components/horizontal-scroll-carousel"
 
-export default function StudentDashboardPage() {
-  const { currentContent, language } = useLanguage()
-  const isArabic = language === "ar"
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(true)
-  const [lastWatchedVideoId, setLastWatchedVideoId] = useState<string | null>(null)
+export default async function StudentDashboardPage() {
+  const supabase = await createClient()
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const supabase = createClient()
-      const { data, error } = await supabase.auth.getUser()
-      if (error || !data?.user) {
-        router.push("/auth/login")
-        return
-      }
+  // Server-side authentication check
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-      const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", data.user.id).single()
-      if (profile?.is_admin) {
-        router.push("/dashboard/admin")
-        return
-      }
-
-      setIsLoading(false)
-    }
-    checkUser()
-
-    const storedVideoId = localStorage.getItem("lastWatchedVideoId")
-    setLastWatchedVideoId(storedVideoId)
-  }, [router])
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[calc(100vh-64px)] items-center justify-center">
-        <p>Loading dashboard...</p>
-      </div>
-    )
+  if (!user) {
+    redirect("/auth/login")
   }
 
-  const theoreticalVideos = currentContent.lectures.filter((video) => video.category === "Theoretical")
-  const practicalVideos = currentContent.lectures.filter((video) => video.category === "Practical")
-  const lastWatchedVideo = lastWatchedVideoId
-    ? currentContent.lectures.find((video) => video.id === lastWatchedVideoId)
-    : null
+  // Check if user is student (not admin)
+  const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+
+  if (profile?.is_admin) {
+    redirect("/dashboard/admin")
+  }
+
+  // Mock content data - replace with actual data fetching
+  const currentContent = {
+    auth: {
+      studentDashboard: {
+        title: "Student Dashboard",
+        signOut: "Sign Out",
+        continueWatching: "Continue Watching",
+        noVideosWatched: "No videos watched yet",
+        theoreticalContent: "Theoretical Content",
+        practicalContent: "Practical Content",
+      },
+    },
+    lectures: [], // Replace with actual lecture data
+  }
+
+  const theoreticalVideos = currentContent.lectures.filter((video: any) => video.category === "Theoretical")
+  const practicalVideos = currentContent.lectures.filter((video: any) => video.category === "Practical")
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -69,56 +55,21 @@ export default function StudentDashboardPage() {
         </form>
       </div>
 
-      {lastWatchedVideo ? (
-        <div className="mt-8">
-          <h2 className="font-montserrat text-2xl font-bold text-darkProfessional mb-4">
-            {currentContent.auth.studentDashboard.continueWatching}
-          </h2>
-          <Link href={`/dashboard/student/player?id=${lastWatchedVideo.id}`}>
-            <Card className="w-full rounded-lg overflow-hidden shadow-lg transition-all duration-200 hover:scale-[1.01] cursor-pointer">
-              <CardContent className="p-0 flex flex-col md:flex-row">
-                <div className="relative w-full md:w-1/2 aspect-video">
-                  <NextImage
-                    src={lastWatchedVideo.thumbnailImage || "/placeholder.svg"}
-                    alt={lastWatchedVideo.title}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                  {lastWatchedVideo.progress !== undefined && (
-                    <div className="absolute bottom-0 left-0 h-1 w-full bg-gray-300">
-                      <div className="h-full bg-blue-500" style={{ width: `${lastWatchedVideo.progress}%` }} />
-                    </div>
-                  )}
-                </div>
-                <div className="p-4 md:w-1/2 flex flex-col justify-center">
-                  <h3 className="font-montserrat text-xl font-bold text-purple">{lastWatchedVideo.title}</h3>
-                  <p className="text-gray-700 mt-2 line-clamp-3">{lastWatchedVideo.description}</p>
-                  <Button className="mt-4 self-start bg-teal hover:bg-purple">
-                    {currentContent.auth.studentDashboard.continueWatching}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-      ) : (
-        <div className="mt-8 text-center text-lg text-gray-600">
-          <p>{currentContent.auth.studentDashboard.noVideosWatched}</p>
-        </div>
-      )}
+      <div className="mt-8 text-center text-lg text-gray-600">
+        <p>{currentContent.auth.studentDashboard.noVideosWatched}</p>
+      </div>
 
       <div className="mt-12">
-        <HorizontalScrollCarousel title={currentContent.auth.studentDashboard.theoreticalContent} isArabic={isArabic}>
-          {theoreticalVideos.map((video) => (
+        <HorizontalScrollCarousel title={currentContent.auth.studentDashboard.theoreticalContent} isArabic={false}>
+          {theoreticalVideos.map((video: any) => (
             <VideoThumbnailCard key={video.id} video={video} />
           ))}
         </HorizontalScrollCarousel>
       </div>
 
       <div className="mt-12">
-        <HorizontalScrollCarousel title={currentContent.auth.studentDashboard.practicalContent} isArabic={isArabic}>
-          {practicalVideos.map((video) => (
+        <HorizontalScrollCarousel title={currentContent.auth.studentDashboard.practicalContent} isArabic={false}>
+          {practicalVideos.map((video: any) => (
             <VideoThumbnailCard key={video.id} video={video} />
           ))}
         </HorizontalScrollCarousel>

@@ -1,6 +1,16 @@
+
 ```
 ctrls-s-website
 ├─ app
+│  ├─ admin
+│  │  └─ exams
+│  │     ├─ route.ts
+│  │     ├─ stats
+│  │     │  └─ route.ts
+│  │     └─ [id]
+│  │        ├─ route.ts
+│  │        └─ submissions
+│  │           └─ route.ts
 │  ├─ auth
 │  │  ├─ actions.ts
 │  │  └─ login
@@ -31,8 +41,11 @@ ctrls-s-website
 │  ├─ admin
 │  │  ├─ add-edit-lecture-form.tsx
 │  │  ├─ content-management.tsx
+│  │  ├─ create-exam-form.tsx
 │  │  ├─ create-student-form.tsx
 │  │  ├─ dashboard-overview.tsx
+│  │  ├─ exam-overview.tsx
+│  │  ├─ grade-management.tsx
 │  │  └─ student-management.tsx
 │  ├─ certificate-showcase.tsx
 │  ├─ contact-form.tsx
@@ -101,6 +114,7 @@ ctrls-s-website
 │  ├─ whatsapp-fixed-button.tsx
 │  └─ why-ctrls-s-section.tsx
 ├─ components.json
+├─ env.download
 ├─ hooks
 │  ├─ use-mobile.tsx
 │  └─ use-toast.ts
@@ -110,6 +124,7 @@ ctrls-s-website
 │  │  ├─ client.ts
 │  │  └─ server.ts
 │  └─ utils.ts
+├─ middleware.ts
 ├─ next.config.mjs
 ├─ package-lock.json
 ├─ package.json
@@ -149,7 +164,6 @@ ctrls-s-website
 │     ├─ roadmap.png
 │     ├─ soft-skills.png
 │     └─ Thinkers.png
-├─ README.md
 ├─ scripts
 │  └─ supabase
 │     └─ init.sql
