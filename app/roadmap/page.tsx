@@ -1,5 +1,5 @@
-import RoadmapSection from "@/components/roadmap-section"
-import HomeCtaSection from "@/components/home-cta-section"
+import RoadmapSection from "@/components/roadmap-section";
+import HomeCtaSection from "@/components/home-cta-section";
 
 export default function RoadmapPage() {
   return (
@@ -7,5 +7,5 @@ export default function RoadmapPage() {
       <RoadmapSection />
       <HomeCtaSection />
     </>
-  )
+  );
 }
