@@ -115,25 +115,6 @@ body {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
-
-  /* New utility classes for continuous backgrounds */
-  .bg-wave5-section {
-    background-image: url("/wave5.png");
-    background-position: center center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed; /* Key for fixed background during scroll */
-    background-color: transparent; /* Ensure transparency to show the image */
-  }
-
-  .bg-wave5Rotate-section {
-    background-image: url("/wave5Rotate.png");
-    background-position: center center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed; /* Key for fixed background during scroll */
-    background-color: transparent; /* Ensure transparency to show the image */
-  }
 }
 
 /* Import Google Fonts */
