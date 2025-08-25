@@ -12,19 +12,19 @@ interface Exam {
   id: string
   title: string
   description: string
-  status: "draft" | "active" | "inactive"
+  status: "draft" | "active" | "completed" | "archived"
   start_date: string
   end_date: string
   duration_minutes: number
   created_at: string
-  submission_count?: number
+  submissions: { count: number }[]
 }
 
 interface ExamStats {
-  total_exams: number
-  active_exams: number
-  upcoming_exams: number
-  total_submissions: number
+  totalExams: number
+  activeExams: number
+  upcomingExams: number
+  totalSubmissions: number
 }
 
 export default function ExamOverview() {
@@ -44,7 +44,7 @@ export default function ExamOverview() {
       .from("exams")
       .select(`
         *,
-        exam_submissions(count)
+        submissions(count)
       `)
       .order("created_at", { ascending: false })
 
@@ -57,7 +57,7 @@ export default function ExamOverview() {
     } else {
       const examsWithCounts = data.map((exam) => ({
         ...exam,
-        submission_count: exam.exam_submissions?.[0]?.count || 0,
+        submissions: exam.submissions || [{ count: 0 }],
       }))
       setExams(examsWithCounts)
     }
@@ -66,15 +66,15 @@ export default function ExamOverview() {
 
   const fetchStats = async () => {
     const supabase = createClient()
-    const { data, error } = await supabase.from("exam_stats").select("*").single()
-
-    if (!error && data) {
-      setStats(data)
+    const response = await fetch("/admin/exams/stats")
+    if (response.ok) {
+      const { stats } = await response.json()
+      setStats(stats)
     }
   }
 
   const toggleExamStatus = async (examId: string, currentStatus: string) => {
-    const newStatus = currentStatus === "active" ? "inactive" : "active"
+    const newStatus = currentStatus === "active" ? "draft" : "active"
     const supabase = createClient()
 
     const { error } = await supabase.from("exams").update({ status: newStatus }).eq("id", examId)
@@ -88,7 +88,7 @@ export default function ExamOverview() {
     } else {
       toast({
         title: "Success",
-        description: `Exam ${newStatus === "active" ? "enabled" : "disabled"} successfully`,
+        description: `Exam ${newStatus === "active" ? "activated" : "deactivated"} successfully`,
       })
       fetchExams()
       fetchStats()
@@ -109,7 +109,7 @@ export default function ExamOverview() {
               <CardTitle className="text-sm font-medium">Total Exams</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.total_exams}</div>
+              <div className="text-2xl font-bold">{stats.totalExams}</div>
             </CardContent>
           </Card>
           <Card>
@@ -117,15 +117,15 @@ export default function ExamOverview() {
               <CardTitle className="text-sm font-medium">Active Exams</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.active_exams}</div>
+              <div className="text-2xl font-bold text-green-600">{stats.activeExams}</div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Upcoming Exams</CardTitle>
+              <CardTitle className="text-sm font-medium">Draft Exams</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.upcoming_exams}</div>
+              <div className="text-2xl font-bold text-blue-600">{stats.upcomingExams}</div>
             </CardContent>
           </Card>
           <Card>
@@ -133,7 +133,7 @@ export default function ExamOverview() {
               <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.total_submissions}</div>
+              <div className="text-2xl font-bold">{stats.totalSubmissions}</div>
             </CardContent>
           </Card>
         </div>
@@ -180,17 +180,21 @@ export default function ExamOverview() {
                     </div>
                     <div>
                       <p className="font-medium">Start Date</p>
-                      <p className="text-muted-foreground">{new Date(exam.start_date).toLocaleDateString()}</p>
+                      <p className="text-muted-foreground">
+                        {exam.start_date ? new Date(exam.start_date).toLocaleDateString() : "Not set"}
+                      </p>
                     </div>
                     <div>
                       <p className="font-medium">End Date</p>
-                      <p className="text-muted-foreground">{new Date(exam.end_date).toLocaleDateString()}</p>
+                      <p className="text-muted-foreground">
+                        {exam.end_date ? new Date(exam.end_date).toLocaleDateString() : "Not set"}
+                      </p>
                     </div>
                     <div>
                       <p className="font-medium">Submissions</p>
                       <p className="text-muted-foreground">
                         <Button variant="link" className="p-0 h-auto">
-                          {exam.submission_count} submissions
+                          {exam.submissions[0]?.count || 0} submissions
                         </Button>
                       </p>
                     </div>

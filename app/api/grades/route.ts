@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET() {
   const cookieStore = await cookies()
   const supabase = createServerClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
     cookies: {
@@ -13,7 +13,6 @@ export async function GET(request: Request, { params }: { params: { id: string }
   })
 
   try {
-    // Check if user is admin
     const {
       data: { user },
     } = await supabase.auth.getUser()
@@ -21,31 +20,28 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
-
-    if (!profile?.is_admin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
-
-    // Fetch all submissions for the exam with student details
+    // Fetch student's grades
     const { data: submissions, error } = await supabase
       .from("submissions")
       .select(`
         *,
-        profiles:student_id (
+        exams (
           id,
-          full_name,
-          email
+          title,
+          description,
+          allow_review,
+          show_results
         )
       `)
-      .eq("exam_id", params.id)
+      .eq("student_id", user.id)
+      .eq("status", "graded")
       .order("created_at", { ascending: false })
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ submissions })
+    return NextResponse.json({ grades: submissions })
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

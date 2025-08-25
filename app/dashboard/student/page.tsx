@@ -4,6 +4,8 @@ import { signOut } from "@/app/auth/actions"
 import { Button } from "@/components/ui/button"
 import VideoThumbnailCard from "@/components/video-thumbnail-card"
 import HorizontalScrollCarousel from "@/components/horizontal-scroll-carousel"
+import UpcomingExams from "@/components/student/upcoming-exams"
+import RecentGrades from "@/components/student/recent-grades"
 
 export default async function StudentDashboardPage() {
   const supabase = await createClient()
@@ -53,6 +55,11 @@ export default async function StudentDashboardPage() {
             {currentContent.auth.studentDashboard.signOut}
           </Button>
         </form>
+      </div>
+
+      <div className="mt-8 space-y-8">
+        <UpcomingExams />
+        <RecentGrades />
       </div>
 
       <div className="mt-8 text-center text-lg text-gray-600">

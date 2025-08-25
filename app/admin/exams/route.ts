@@ -4,17 +4,13 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET() {
   const cookieStore = cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
+  const supabase = createServerClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
+    cookies: {
+      async get(name: string) {
+        return (await cookieStore).get(name)?.value
       },
     },
-  )
+  })
 
   try {
     // Check if user is admin
@@ -36,7 +32,7 @@ export async function GET() {
       .from("exams")
       .select(`
         *,
-        exam_submissions(count)
+        submissions(count)
       `)
       .order("created_at", { ascending: false })
 
@@ -52,17 +48,13 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const cookieStore = cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
+  const supabase = createServerClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
+    cookies: {
+      async get(name: string) {
+        return (await cookieStore).get(name)?.value
       },
     },
-  )
+  })
 
   try {
     // Check if user is admin
