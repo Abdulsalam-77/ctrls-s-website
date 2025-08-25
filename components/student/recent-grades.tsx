@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Trophy, Eye } from "lucide-react"
 import Link from "next/link"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useToast } from "@/hooks/use-toast"
 
 interface Grade {
   id: string
@@ -24,6 +26,7 @@ interface Grade {
 export default function RecentGrades() {
   const [grades, setGrades] = useState<Grade[]>([])
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchGrades()
@@ -32,12 +35,16 @@ export default function RecentGrades() {
   const fetchGrades = async () => {
     try {
       const response = await fetch("/api/grades")
-      if (response.ok) {
-        const { grades } = await response.json()
-        setGrades(grades)
-      }
+      if (!response.ok) throw new Error("Failed to fetch grades")
+
+      const { grades } = await response.json()
+      setGrades(grades)
     } catch (error) {
-      console.error("Failed to fetch grades:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load grades. Please refresh the page.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -70,9 +77,42 @@ export default function RecentGrades() {
             <Trophy className="w-5 h-5" />
             Recent Grades
           </CardTitle>
+          <CardDescription>Your completed exam results</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4">Loading grades...</div>
+          <div className="grid gap-4">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i} className="border-l-4 border-l-green-500">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                    <div className="text-right space-y-1">
+                      <Skeleton className="h-8 w-8" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <Skeleton className="h-4 w-12" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                      <Skeleton className="h-2 w-full" />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <Skeleton className="h-6 w-16" />
+                      <Skeleton className="h-8 w-20" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </CardContent>
       </Card>
     )

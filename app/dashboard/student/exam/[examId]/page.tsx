@@ -10,9 +10,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Clock, ChevronLeft, ChevronRight, Upload, AlertTriangle } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Clock, ChevronLeft, ChevronRight, Upload, AlertTriangle, Save } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { put } from "@vercel/blob"
+import Link from "next/link"
 
 interface Question {
   id: string
@@ -46,13 +48,15 @@ export default function ExamPage({ params }: { params: { examId: string } }) {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [uploadingFile, setUploadingFile] = useState(false)
+  const [autoSaving, setAutoSaving] = useState(false)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const { toast } = useToast()
   const router = useRouter()
 
-  // Auto-save answers every 30 seconds
   const autoSave = useCallback(async () => {
-    if (!submissionId || Object.keys(answers).length === 0) return
+    if (!submissionId || Object.keys(answers).length === 0 || autoSaving) return
 
+    setAutoSaving(true)
     try {
       const supabase = createClient()
       const answersArray = Object.values(answers)
@@ -65,10 +69,17 @@ export default function ExamPage({ params }: { params: { examId: string } }) {
           student_file_url: answer.fileUrl,
         })
       }
+      setLastSaved(new Date())
     } catch (error) {
-      console.error("Auto-save failed:", error)
+      toast({
+        title: "Auto-save Failed",
+        description: "Your answers couldn't be saved automatically. Please try submitting manually.",
+        variant: "destructive",
+      })
+    } finally {
+      setAutoSaving(false)
     }
-  }, [submissionId, answers])
+  }, [submissionId, answers, autoSaving, toast])
 
   useEffect(() => {
     fetchExamData()
@@ -175,7 +186,7 @@ export default function ExamPage({ params }: { params: { examId: string } }) {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to load exam",
+        description: "Failed to load exam. Please check your connection and try again.",
         variant: "destructive",
       })
       router.push("/dashboard/student")
@@ -210,8 +221,8 @@ export default function ExamPage({ params }: { params: { examId: string } }) {
       })
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to upload file",
+        title: "Upload Failed",
+        description: "Failed to upload file. Please try again or contact support.",
         variant: "destructive",
       })
     } finally {
@@ -243,8 +254,8 @@ export default function ExamPage({ params }: { params: { examId: string } }) {
       router.push("/dashboard/student")
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to submit exam",
+        title: "Submission Failed",
+        description: "Failed to submit exam. Please try again or contact support if the issue persists.",
         variant: "destructive",
       })
     } finally {
@@ -261,8 +272,46 @@ export default function ExamPage({ params }: { params: { examId: string } }) {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Loading exam...</div>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-8 w-32" />
+          </div>
+          <Skeleton className="h-2 w-full mb-2" />
+          <div className="flex justify-between">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+        </div>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-6 w-16" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-3">
+                  <Skeleton className="w-4 h-4 rounded-full" />
+                  <Skeleton className="h-4 flex-1" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-10 w-24" />
+        </div>
       </div>
     )
   }
@@ -270,7 +319,14 @@ export default function ExamPage({ params }: { params: { examId: string } }) {
   if (!exam) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Exam not found</div>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-muted-foreground">Exam not found or no longer available</p>
+            <Button asChild className="mt-4">
+              <Link href="/dashboard/student">Back to Dashboard</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -282,9 +338,22 @@ export default function ExamPage({ params }: { params: { examId: string } }) {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">{exam.title}</h1>
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
+          <h1 className="text-2xl font-bold break-words">{exam.title}</h1>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {autoSaving ? (
+                <>
+                  <Save className="w-4 h-4 animate-pulse" />
+                  <span>Saving...</span>
+                </>
+              ) : lastSaved ? (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Saved {lastSaved.toLocaleTimeString()}</span>
+                </>
+              ) : null}
+            </div>
             <Badge variant={timeRemaining > 300 ? "default" : "destructive"} className="text-lg px-3 py-1">
               <Clock className="w-4 h-4 mr-1" />
               {formatTime(timeRemaining)}
@@ -303,7 +372,7 @@ export default function ExamPage({ params }: { params: { examId: string } }) {
       {/* Question Card */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <span>Question {currentQuestionIndex + 1}</span>
             <Badge variant="outline">
               {currentQuestion.points} point{currentQuestion.points !== 1 ? "s" : ""}
@@ -408,7 +477,12 @@ export default function ExamPage({ params }: { params: { examId: string } }) {
                       disabled={uploadingFile}
                       className="max-w-xs mx-auto"
                     />
-                    {uploadingFile && <div className="mt-2 text-sm text-muted-foreground">Uploading...</div>}
+                    {uploadingFile && (
+                      <div className="mt-2 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                        Uploading file...
+                      </div>
+                    )}
                     {answers[currentQuestion.id]?.fileUrl && (
                       <div className="mt-2">
                         <Button
@@ -438,32 +512,35 @@ export default function ExamPage({ params }: { params: { examId: string } }) {
       </Card>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <Button
           variant="outline"
           onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
           disabled={currentQuestionIndex === 0}
+          className="w-full sm:w-auto"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Previous
         </Button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-center">
           {timeRemaining <= 300 && (
             <div className="flex items-center gap-1 text-red-600 text-sm">
               <AlertTriangle className="w-4 h-4" />
-              Less than 5 minutes remaining!
+              <span className="hidden sm:inline">Less than 5 minutes remaining!</span>
+              <span className="sm:hidden">5 min left!</span>
             </div>
           )}
         </div>
 
         {currentQuestionIndex === exam.questions.length - 1 ? (
-          <Button onClick={() => handleSubmit()} disabled={submitting}>
+          <Button onClick={() => handleSubmit()} disabled={submitting} className="w-full sm:w-auto">
             {submitting ? "Submitting..." : "Submit Exam"}
           </Button>
         ) : (
           <Button
             onClick={() => setCurrentQuestionIndex(Math.min(exam.questions.length - 1, currentQuestionIndex + 1))}
+            className="w-full sm:w-auto"
           >
             Next
             <ChevronRight className="w-4 h-4 ml-1" />

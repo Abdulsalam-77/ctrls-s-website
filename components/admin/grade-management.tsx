@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Trophy } from "lucide-react"
 
 interface Exam {
   id: string
@@ -62,6 +64,7 @@ export default function GradeManagement() {
   const [answers, setAnswers] = useState<Answer[]>([])
   const [grades, setGrades] = useState<Record<string, { score: number; feedback: string }>>({})
   const [loading, setLoading] = useState(false)
+  const [examLoading, setExamLoading] = useState(true)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -75,57 +78,84 @@ export default function GradeManagement() {
   }, [selectedExam])
 
   const fetchExams = async () => {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from("exams")
-      .select("id, title, status")
-      .order("created_at", { ascending: false })
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("exams")
+        .select("id, title, status")
+        .order("created_at", { ascending: false })
 
-    if (!error && data) {
-      setExams(data)
+      if (error) throw error
+      if (data) setExams(data)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load exams. Please refresh the page.",
+        variant: "destructive",
+      })
+    } finally {
+      setExamLoading(false)
     }
   }
 
   const fetchSubmissions = async (examId: string) => {
     setLoading(true)
-    const response = await fetch(`/admin/exams/${examId}/submissions`)
-    if (response.ok) {
+    try {
+      const response = await fetch(`/admin/exams/${examId}/submissions`)
+      if (!response.ok) throw new Error("Failed to fetch submissions")
+
       const { submissions } = await response.json()
       setSubmissions(submissions)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load submissions. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const openGradingDialog = async (submission: Submission) => {
     setSelectedSubmission(submission)
 
-    // Fetch answers for this submission
-    const supabase = createClient()
-    const { data: answersData, error } = await supabase
-      .from("answers")
-      .select(`
-        *,
-        questions (
-          question_text,
-          question_type,
-          correct_answer,
-          points
-        )
-      `)
-      .eq("submission_id", submission.id)
+    try {
+      // Fetch answers for this submission
+      const supabase = createClient()
+      const { data: answersData, error } = await supabase
+        .from("answers")
+        .select(`
+          *,
+          questions (
+            question_text,
+            question_type,
+            correct_answer,
+            points
+          )
+        `)
+        .eq("submission_id", submission.id)
 
-    if (!error && answersData) {
-      setAnswers(answersData)
+      if (error) throw error
+      if (answersData) {
+        setAnswers(answersData)
 
-      // Initialize grades state
-      const initialGrades: Record<string, { score: number; feedback: string }> = {}
-      answersData.forEach((answer) => {
-        initialGrades[answer.id] = {
-          score: answer.score || 0,
-          feedback: answer.feedback || "",
-        }
+        // Initialize grades state
+        const initialGrades: Record<string, { score: number; feedback: string }> = {}
+        answersData.forEach((answer) => {
+          initialGrades[answer.id] = {
+            score: answer.score || 0,
+            feedback: answer.feedback || "",
+          }
+        })
+        setGrades(initialGrades)
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load submission details. Please try again.",
+        variant: "destructive",
       })
-      setGrades(initialGrades)
     }
   }
 
@@ -198,27 +228,46 @@ export default function GradeManagement() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Select Exam</Label>
-              <Select value={selectedExam} onValueChange={setSelectedExam}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose an exam to grade" />
-                </SelectTrigger>
-                <SelectContent>
-                  {exams.map((exam) => (
-                    <SelectItem key={exam.id} value={exam.id}>
-                      {exam.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {examLoading ? (
+                <Skeleton className="h-10 w-full" />
+              ) : (
+                <Select value={selectedExam} onValueChange={setSelectedExam}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose an exam to grade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {exams.map((exam) => (
+                      <SelectItem key={exam.id} value={exam.id}>
+                        {exam.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             {selectedExam && (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Submissions</h3>
                 {loading ? (
-                  <div className="text-center p-4">Loading submissions...</div>
+                  <div className="space-y-3">
+                    <Skeleton className="h-10 w-full" />
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="flex space-x-4">
+                        <Skeleton className="h-16 flex-1" />
+                        <Skeleton className="h-16 w-24" />
+                        <Skeleton className="h-16 w-20" />
+                        <Skeleton className="h-16 w-16" />
+                        <Skeleton className="h-16 w-20" />
+                        <Skeleton className="h-16 w-20" />
+                      </div>
+                    ))}
+                  </div>
                 ) : submissions.length === 0 ? (
-                  <div className="text-center p-4 text-muted-foreground">No submissions found for this exam.</div>
+                  <div className="text-center p-8 text-muted-foreground">
+                    <Trophy className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No submissions found for this exam.</p>
+                  </div>
                 ) : (
                   <Table>
                     <TableHeader>

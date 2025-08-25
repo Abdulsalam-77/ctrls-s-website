@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useToast } from "@/hooks/use-toast"
 import { Clock, Calendar, FileText } from "lucide-react"
 import Link from "next/link"
 
@@ -23,6 +25,7 @@ interface Exam {
 export default function UpcomingExams() {
   const [exams, setExams] = useState<Exam[]>([])
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchUpcomingExams()
@@ -31,12 +34,16 @@ export default function UpcomingExams() {
   const fetchUpcomingExams = async () => {
     try {
       const response = await fetch("/api/student-exams")
-      if (response.ok) {
-        const { availableExams } = await response.json()
-        setExams(availableExams)
-      }
+      if (!response.ok) throw new Error("Failed to fetch exams")
+
+      const { availableExams } = await response.json()
+      setExams(availableExams)
     } catch (error) {
-      console.error("Failed to fetch exams:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load exams. Please refresh the page.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -66,9 +73,33 @@ export default function UpcomingExams() {
             <FileText className="w-5 h-5" />
             Upcoming Exams
           </CardTitle>
+          <CardDescription>Available exams you can take</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4">Loading exams...</div>
+          <div className="grid gap-4">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i} className="border-l-4 border-l-blue-500">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-4 w-64" />
+                    </div>
+                    <Skeleton className="h-6 w-20" />
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-muted-foreground">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                    <Skeleton className="h-9 w-24" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </CardContent>
       </Card>
     )
@@ -94,12 +125,12 @@ export default function UpcomingExams() {
             {exams.map((exam) => (
               <Card key={exam.id} className="border-l-4 border-l-blue-500">
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div>
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="flex-1">
                       <CardTitle className="text-lg">{exam.title}</CardTitle>
                       <CardDescription className="mt-1">{exam.description}</CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {exam.submission?.status === "in_progress" && <Badge variant="secondary">In Progress</Badge>}
                       {isExamAvailable(exam) ? (
                         <Badge variant="default">Available</Badge>
@@ -110,18 +141,20 @@ export default function UpcomingExams() {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
                         {exam.duration_minutes} minutes
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        {formatDate(exam.start_date)} - {formatDate(exam.end_date)}
+                        <span className="break-all">
+                          {formatDate(exam.start_date)} - {formatDate(exam.end_date)}
+                        </span>
                       </div>
                     </div>
-                    <div>
+                    <div className="flex-shrink-0">
                       {exam.submission?.status === "in_progress" ? (
                         <Button asChild>
                           <Link href={`/dashboard/student/exam/${exam.id}`}>Continue Exam</Link>
