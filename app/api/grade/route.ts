@@ -56,7 +56,9 @@ export async function PUT(request: NextRequest) {
 
     for (const answer of answers || []) {
       totalScore += answer.score || 0
-      maxScore += answer.questions?.points || 1
+      maxScore += Array.isArray(answer.questions)
+        ? answer.questions.reduce((sum: number, q: { points: number }) => sum + (q.points || 0), 0)
+        : 1
     }
 
     // Update submission with final scores
