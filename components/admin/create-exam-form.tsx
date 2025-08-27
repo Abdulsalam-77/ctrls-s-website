@@ -84,13 +84,13 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
         start_date: exam.start_date,
         end_date: exam.end_date,
         status: exam.status,
-        allow_review: exam.allow_review,
-        show_results: exam.show_results,
-        visibility: exam.visibility,
+        allow_review: exam.allow_review || true,
+        show_results: exam.show_results || true,
+        visibility: exam.visibility || "all",
       })
 
       const { data: questionsData, error: questionsError } = await supabase
-        .from("questions")
+        .from("exam_questions")
         .select("*")
         .eq("exam_id", examId)
         .order("order_index")
@@ -105,11 +105,12 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
         correct_answer: q.correct_answer || "",
         points: q.points,
         order_index: q.order_index,
-        file_url: q.file_url,
+        file_url: q.attachment_url,
       }))
 
       setQuestions(loadedQuestions)
     } catch (error) {
+      console.log("[v0] Error loading exam data:", error)
       toast({
         title: "Error",
         description: "Failed to load exam data",
@@ -239,9 +240,93 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!examForm.title.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Exam title is required",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!examForm.start_date) {
+      toast({
+        title: "Validation Error",
+        description: "Start date and time is required",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!examForm.end_date) {
+      toast({
+        title: "Validation Error",
+        description: "End date and time is required",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (new Date(examForm.start_date) >= new Date(examForm.end_date)) {
+      toast({
+        title: "Validation Error",
+        description: "End date must be after start date",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (examForm.status === "active" && questions.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Cannot activate exam without questions. Add at least one question or save as draft.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Validate questions if exam is being activated
+    if (examForm.status === "active") {
+      for (let i = 0; i < questions.length; i++) {
+        const question = questions[i]
+        if (!question.question_text.trim()) {
+          toast({
+            title: "Validation Error",
+            description: `Question ${i + 1} text is required`,
+            variant: "destructive",
+          })
+          return
+        }
+
+        if ((question.question_type === "mcq" || question.question_type === "true_false") && !question.correct_answer) {
+          toast({
+            title: "Validation Error",
+            description: `Question ${i + 1} must have a correct answer selected`,
+            variant: "destructive",
+          })
+          return
+        }
+
+        if (question.question_type === "mcq") {
+          const hasEmptyOptions = Object.values(question.options).some((option) => !option.trim())
+          if (hasEmptyOptions) {
+            toast({
+              title: "Validation Error",
+              description: `Question ${i + 1} has empty options. Please fill all options or remove them.`,
+              variant: "destructive",
+            })
+            return
+          }
+        }
+      }
+    }
+
     setLoading(true)
 
     try {
+      console.log("[v0] Submitting exam form:", examForm)
+
       const response = examId
         ? await fetch(`/admin/exams/${examId}`, {
             method: "PUT",
@@ -254,10 +339,24 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
             body: JSON.stringify(examForm),
           })
 
-      if (!response.ok) throw new Error("Failed to save exam")
+      console.log("[v0] Exam API response status:", response.status)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.log("[v0] Exam API error:", errorData)
+
+        toast({
+          title: "Error",
+          description: errorData.error || `Failed to ${examId ? "update" : "create"} exam. Please try again.`,
+          variant: "destructive",
+        })
+        return
+      }
 
       const { exam } = await response.json()
       const currentExamId = examId || exam.id
+
+      console.log("[v0] Exam saved successfully, ID:", currentExamId)
 
       // Save questions if any exist
       if (questions.length > 0) {
@@ -265,7 +364,8 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
 
         // Delete existing questions if editing
         if (examId) {
-          await supabase.from("questions").delete().eq("exam_id", examId)
+          console.log("[v0] Deleting existing questions for exam:", examId)
+          await supabase.from("exam_questions").delete().eq("exam_id", examId)
         }
 
         const questionsToInsert = questions.map((q) => ({
@@ -276,17 +376,32 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
           correct_answer: q.correct_answer,
           points: q.points,
           order_index: q.order_index,
-          file_url: q.file_url,
+          attachment_url: q.file_url,
+          attachment_name: q.file_url ? q.file_url.split("/").pop() : null,
         }))
 
-        const { error: questionsError } = await supabase.from("questions").insert(questionsToInsert)
+        console.log("[v0] Inserting questions:", questionsToInsert.length)
 
-        if (questionsError) throw questionsError
+        const { error: questionsError } = await supabase.from("exam_questions").insert(questionsToInsert)
+
+        if (questionsError) {
+          console.log("[v0] Questions insert error:", questionsError)
+          toast({
+            title: "Warning",
+            description: "Exam created but failed to save some questions. Please edit the exam to add questions.",
+            variant: "destructive",
+          })
+          return
+        }
+
+        console.log("[v0] Questions saved successfully")
       }
 
       toast({
-        title: "Success",
-        description: examId ? "Exam updated successfully" : "Exam created successfully",
+        title: "Success!",
+        description: examId
+          ? "Exam updated successfully"
+          : `Exam created successfully${examForm.status === "active" ? " and is now active" : " as draft"}`,
       })
 
       if (onSuccess) {
@@ -306,9 +421,10 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
         setQuestions([])
       }
     } catch (error) {
+      console.log("[v0] Submit error:", error)
       toast({
         title: "Error",
-        description: examId ? "Failed to update exam" : "Failed to create exam",
+        description: `Failed to ${examId ? "update" : "create"} exam. Please check your connection and try again.`,
         variant: "destructive",
       })
     } finally {

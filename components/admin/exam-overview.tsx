@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -35,6 +36,7 @@ export default function ExamOverview() {
   const [statsLoading, setStatsLoading] = useState(true)
   const [toggleLoading, setToggleLoading] = useState<string | null>(null)
   const { toast } = useToast()
+  const router = useRouter()
 
   useEffect(() => {
     fetchExams()
@@ -43,23 +45,13 @@ export default function ExamOverview() {
 
   const fetchExams = async () => {
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("exams")
-        .select(`
-          *,
-          submissions(count)
-        `)
-        .order("created_at", { ascending: false })
+      const response = await fetch("/admin/exams")
+      if (!response.ok) throw new Error("Failed to fetch exams")
 
-      if (error) throw error
-
-      const examsWithCounts = data.map((exam) => ({
-        ...exam,
-        submissions: exam.submissions || [{ count: 0 }],
-      }))
-      setExams(examsWithCounts)
+      const { exams: examData } = await response.json()
+      setExams(examData || [])
     } catch (error) {
+      console.log("[v0] Error fetching exams:", error)
       toast({
         title: "Error",
         description: "Failed to fetch exams. Please try again.",
@@ -74,7 +66,7 @@ export default function ExamOverview() {
     try {
       const response = await fetch("/admin/exams/stats")
       if (!response.ok) throw new Error("Failed to fetch stats")
-      
+
       const { stats } = await response.json()
       setStats(stats)
     } catch (error) {
@@ -91,28 +83,100 @@ export default function ExamOverview() {
   const toggleExamStatus = async (examId: string, currentStatus: string) => {
     setToggleLoading(examId)
     const newStatus = currentStatus === "active" ? "draft" : "active"
-    
-    try {
-      const supabase = createClient()
-      const { error } = await supabase.from("exams").update({ status: newStatus }).eq("id", examId)
 
-      if (error) throw error
+    try {
+      const exam = exams.find((e) => e.id === examId)
+      if (!exam) {
+        throw new Error("Exam not found")
+      }
+
+      if (newStatus === "active") {
+        if (!exam.start_date || !exam.end_date) {
+          toast({
+            title: "Cannot Activate Exam",
+            description: "Exam must have start and end dates before activation",
+            variant: "destructive",
+          })
+          return
+        }
+
+        if (new Date(exam.start_date) >= new Date(exam.end_date)) {
+          toast({
+            title: "Cannot Activate Exam",
+            description: "End date must be after start date",
+            variant: "destructive",
+          })
+          return
+        }
+
+        // Check if exam has questions
+        const supabase = createClient()
+        const { data: questions, error: questionsError } = await supabase
+          .from("exam_questions")
+          .select("id")
+          .eq("exam_id", examId)
+          .limit(1)
+
+        if (questionsError) {
+          console.log("[v0] Error checking questions:", questionsError)
+          toast({
+            title: "Error",
+            description: "Failed to validate exam questions",
+            variant: "destructive",
+          })
+          return
+        }
+
+        if (!questions || questions.length === 0) {
+          toast({
+            title: "Cannot Activate Exam",
+            description: "Exam must have at least one question before activation",
+            variant: "destructive",
+          })
+          return
+        }
+      }
+
+      const response = await fetch(`/admin/exams/${examId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: exam.title,
+          description: exam.description,
+          status: newStatus,
+          duration_minutes: exam.duration_minutes,
+          start_date: exam.start_date,
+          end_date: exam.end_date,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to update exam status")
+      }
 
       toast({
-        title: "Success",
+        title: "Success!",
         description: `Exam ${newStatus === "active" ? "activated" : "deactivated"} successfully`,
       })
-      fetchExams()
-      fetchStats()
+
+      await Promise.all([fetchExams(), fetchStats()])
     } catch (error) {
+      console.log("[v0] Error toggling exam status:", error)
       toast({
         title: "Error",
-        description: "Failed to update exam status. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to update exam status. Please try again.",
         variant: "destructive",
       })
     } finally {
       setToggleLoading(null)
     }
+  }
+
+  const handleEditExam = (examId: string) => {
+    router.push(`/dashboard/admin/exams/edit/${examId}`)
   }
 
   if (loading) {
@@ -131,7 +195,7 @@ export default function ExamOverview() {
             </Card>
           ))}
         </div>
-        
+
         {/* Exams List Skeleton */}
         <div className="space-y-4">
           <Skeleton className="h-6 w-32" />
@@ -247,7 +311,7 @@ export default function ExamOverview() {
                         onCheckedChange={() => toggleExamStatus(exam.id, exam.status)}
                         disabled={toggleLoading === exam.id}
                       />
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleEditExam(exam.id)}>
                         Edit
                       </Button>
                     </div>
@@ -275,7 +339,7 @@ export default function ExamOverview() {
                       <p className="font-medium">Submissions</p>
                       <p className="text-muted-foreground">
                         <Button variant="link" className="p-0 h-auto">
-                          {exam.submissions[0]?.count || 0} submissions
+                          {exam.submissions && exam.submissions.length > 0 ? exam.submissions[0].count : 0} submissions
                         </Button>
                       </p>
                     </div>
