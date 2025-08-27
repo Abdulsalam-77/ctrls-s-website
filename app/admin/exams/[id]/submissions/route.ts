@@ -1,36 +1,37 @@
-import { createClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
+import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
+import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const supabase = await createClient()
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+      },
+    },
+  )
 
   try {
-    // Check if user is admin
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
-
     if (!profile?.is_admin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Fetch all submissions for the exam with student details
     const { data: submissions, error } = await supabase
       .from("exam_submissions")
-      .select(`
-        *,
-        profiles:student_id (
-          id,
-          email
-        )
-      `)
+      .select(`*, profiles(email)`)
       .eq("exam_id", params.id)
-      .order("created_at", { ascending: false })
+      .order("submitted_at", { ascending: false })
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
