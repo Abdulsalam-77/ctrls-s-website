@@ -1,110 +1,460 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useLanguage } from "@/components/language-context"
-import { useEffect, useState } from "react"
-import { fetchAdminDashboardStats } from "@/app/dashboard/admin/actions"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useToast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Trash2, Edit, Power } from "lucide-react"
 
-interface DashboardStats {
-  totalStudents: number
-  totalVideos: number
-  newSignups30Days: number
-  error: string | null
+interface Exam {
+  id: string
+  title: string
+  description: string
+  status: "draft" | "active" | "completed" | "archived"
+  start_date: string
+  end_date: string
+  duration_minutes: number
+  created_at: string
+  submissions: { count: number }[]
 }
 
-export default function DashboardOverview() {
-  const { currentContent } = useLanguage()
-  const [stats, setStats] = useState<DashboardStats>({
-    totalStudents: 0,
-    totalVideos: 0,
-    newSignups30Days: 0,
-    error: null,
-  })
+interface ExamStats {
+  totalExams: number
+  activeExams: number
+  upcomingExams: number
+  totalSubmissions: number
+}
+
+export default function ExamOverview() {
+  const [exams, setExams] = useState<Exam[]>([])
+  const [stats, setStats] = useState<ExamStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [statsLoading, setStatsLoading] = useState(true)
+  const [toggleLoading, setToggleLoading] = useState<string | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
+  const { toast } = useToast()
+  const router = useRouter()
 
   useEffect(() => {
-    const getStats = async () => {
-      setLoading(true)
-      const result = await fetchAdminDashboardStats()
-      setStats(result)
+    fetchExams()
+    fetchStats()
+  }, [])
+
+  const fetchExams = async () => {
+    try {
+      const response = await fetch("/admin/exams")
+      if (!response.ok) throw new Error("Failed to fetch exams")
+
+      const { exams: examData } = await response.json()
+      setExams(examData || [])
+    } catch (error) {
+      console.log("[v0] Error fetching exams:", error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch exams. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
       setLoading(false)
     }
-    getStats()
-  }, [])
+  }
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch("/admin/exams/stats")
+      if (!response.ok) throw new Error("Failed to fetch stats")
+
+      const { stats } = await response.json()
+      setStats(stats)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load exam statistics",
+        variant: "destructive",
+      })
+    } finally {
+      setStatsLoading(false)
+    }
+  }
+
+  const toggleExamStatus = async (examId: string, currentStatus: string) => {
+    setToggleLoading(examId)
+    const newStatus = currentStatus === "active" ? "draft" : "active"
+
+    try {
+      const exam = exams.find((e) => e.id === examId)
+      if (!exam) {
+        throw new Error("Exam not found")
+      }
+
+      if (newStatus === "active") {
+        if (!exam.start_date || !exam.end_date) {
+          toast({
+            title: "Cannot Activate Exam",
+            description: "Exam must have start and end dates before activation",
+            variant: "destructive",
+          })
+          return
+        }
+
+        if (new Date(exam.start_date) >= new Date(exam.end_date)) {
+          toast({
+            title: "Cannot Activate Exam",
+            description: "End date must be after start date",
+            variant: "destructive",
+          })
+          return
+        }
+
+        const supabase = createClient()
+        const { data: questions, error: questionsError } = await supabase
+          .from("exam_questions")
+          .select("id")
+          .eq("exam_id", examId)
+          .limit(1)
+
+        if (questionsError) {
+          console.log("[v0] Error checking questions:", questionsError)
+          toast({
+            title: "Error",
+            description: "Failed to validate exam questions",
+            variant: "destructive",
+          })
+          return
+        }
+
+        if (!questions || questions.length === 0) {
+          toast({
+            title: "Cannot Activate Exam",
+            description: "Exam must have at least one question before activation",
+            variant: "destructive",
+          })
+          return
+        }
+      }
+
+      const response = await fetch(`/admin/exams/${examId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: exam.title,
+          description: exam.description,
+          status: newStatus,
+          duration_minutes: exam.duration_minutes,
+          start_date: exam.start_date,
+          end_date: exam.end_date,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to update exam status")
+      }
+
+      toast({
+        title: "Success!",
+        description: `Exam ${newStatus === "active" ? "activated" : "deactivated"} successfully`,
+      })
+
+      await Promise.all([fetchExams(), fetchStats()])
+    } catch (error) {
+      console.log("[v0] Error toggling exam status:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update exam status. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setToggleLoading(null)
+    }
+  }
+
+  const deleteExam = async (examId: string) => {
+    setDeleteLoading(examId)
+
+    try {
+      const response = await fetch(`/admin/exams/${examId}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to delete exam")
+      }
+
+      toast({
+        title: "Success!",
+        description: "Exam deleted successfully",
+      })
+
+      await Promise.all([fetchExams(), fetchStats()])
+    } catch (error) {
+      console.log("[v0] Error deleting exam:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete exam. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setDeleteLoading(null)
+    }
+  }
+
+  const handleEditExam = (examId: string) => {
+    router.push(`/dashboard/admin/exams/edit/${examId}`)
+  }
 
   if (loading) {
     return (
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-inter text-sm font-medium text-neutral-dark">
-              {currentContent.auth.adminDashboard.stats.totalStudents}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="font-inter text-2xl font-bold text-neutral-dark">Loading...</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-inter text-sm font-medium text-neutral-dark">
-              {currentContent.auth.adminDashboard.stats.totalVideos}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="font-inter text-2xl font-bold text-neutral-dark">Loading...</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-inter text-sm font-medium text-neutral-dark">
-              {currentContent.auth.adminDashboard.stats.newSignups30Days}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="font-inter text-2xl font-bold text-neutral-dark">Loading...</div>
-          </CardContent>
-        </Card>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-12" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="space-y-4">
+          <Skeleton className="h-6 w-32" />
+          {[...Array(3)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-64" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-8 w-16" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[...Array(4)].map((_, j) => (
+                    <div key={j} className="space-y-1">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     )
   }
 
-  if (stats.error) {
-    return <div className="text-red-500">Error loading dashboard stats: {stats.error}</div>
-  }
-
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-inter text-sm font-medium text-neutral-dark">
-            {currentContent.auth.adminDashboard.stats.totalStudents}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="font-inter text-2xl font-bold text-neutral-dark">{stats.totalStudents}</div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-inter text-sm font-medium text-neutral-dark">
-            {currentContent.auth.adminDashboard.stats.totalVideos}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="font-inter text-2xl font-bold text-neutral-dark">{stats.totalVideos}</div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-inter text-sm font-medium text-neutral-dark">
-            {currentContent.auth.adminDashboard.stats.newSignups30Days}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="font-inter text-2xl font-bold text-neutral-dark">{stats.newSignups30Days}</div>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      {statsLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-12" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : stats ? (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Exams</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalExams}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Active Exams</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{stats.activeExams}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Draft Exams</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{stats.upcomingExams}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalSubmissions}</div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">All Exams</h2>
+        {exams.length === 0 ? (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-muted-foreground">No exams created yet.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {exams.map((exam) => (
+              <Card key={exam.id}>
+                <CardHeader>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <CardTitle className="flex items-center gap-2 flex-wrap">
+                        {exam.title}
+                        <Badge variant={exam.status === "active" ? "default" : "secondary"}>{exam.status}</Badge>
+                      </CardTitle>
+                      <CardDescription className="mt-1">{exam.description}</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {exam.status === "draft" ? (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={toggleLoading === exam.id}
+                              className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                            >
+                              <Power className="w-4 h-4 mr-1" />
+                              Activate
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Activate Exam</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to make this exam live for students? This cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => toggleExamStatus(exam.id, exam.status)}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                Activate Exam
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      ) : (
+                        <Switch
+                          checked={exam.status === "active"}
+                          onCheckedChange={() => toggleExamStatus(exam.id, exam.status)}
+                          disabled={toggleLoading === exam.id}
+                        />
+                      )}
+                      <Button variant="outline" size="sm" onClick={() => handleEditExam(exam.id)}>
+                        <Edit className="w-4 h-4 mr-1" />
+                        Edit
+                      </Button>
+                      {exam.status === "draft" && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={deleteLoading === exam.id}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 bg-transparent"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Exam Draft</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to permanently delete this exam draft? This action cannot be
+                                undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteExam(exam.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete Exam
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <p className="font-medium">Duration</p>
+                      <p className="text-muted-foreground">{exam.duration_minutes} minutes</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Start Date</p>
+                      <p className="text-muted-foreground">
+                        {exam.start_date ? new Date(exam.start_date).toLocaleDateString() : "Not set"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-medium">End Date</p>
+                      <p className="text-muted-foreground">
+                        {exam.end_date ? new Date(exam.end_date).toLocaleDateString() : "Not set"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Submissions</p>
+                      <p className="text-muted-foreground">
+                        <Button variant="link" className="p-0 h-auto">
+                          {exam.submissions && exam.submissions.length > 0 ? exam.submissions[0].count : 0} submissions
+                        </Button>
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { Plus, Trash2, X, GripVertical, Upload, FileText } from "lucide-react"
+import { Plus, Trash2, X, GripVertical, Upload, FileText, AlertCircle } from "lucide-react"
 import { put } from "@vercel/blob"
 
 interface Question {
@@ -62,6 +62,7 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
   const { toast } = useToast()
 
   const [draggedItem, setDraggedItem] = useState<string | null>(null)
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (examId) {
@@ -238,55 +239,76 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
     setDraggedItem(null)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const validateForm = () => {
+    const errors: Record<string, string> = {}
 
+    // Required fields validation
     if (!examForm.title.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Exam title is required",
-        variant: "destructive",
-      })
-      return
+      errors.title = "Exam title is required"
+    }
+
+    if (!examForm.description.trim()) {
+      errors.description = "Description is required"
+    }
+
+    if (examForm.duration_minutes <= 0) {
+      errors.duration = "Duration must be a positive number greater than zero"
     }
 
     if (!examForm.start_date) {
-      toast({
-        title: "Validation Error",
-        description: "Start date and time is required",
-        variant: "destructive",
-      })
-      return
+      errors.start_date = "Start date and time is required"
     }
 
     if (!examForm.end_date) {
-      toast({
-        title: "Validation Error",
-        description: "End date and time is required",
-        variant: "destructive",
-      })
-      return
+      errors.end_date = "End date and time is required"
     }
 
-    if (new Date(examForm.start_date) >= new Date(examForm.end_date)) {
-      toast({
-        title: "Validation Error",
-        description: "End date must be after start date",
-        variant: "destructive",
-      })
-      return
+    // Date validation
+    if (examForm.start_date && examForm.end_date) {
+      const startDate = new Date(examForm.start_date)
+      const endDate = new Date(examForm.end_date)
+
+      if (endDate <= startDate) {
+        errors.end_date = "End date and time must be after the start date and time"
+      }
     }
 
+    // Prevent past dates
+    if (examForm.start_date) {
+      const startDate = new Date(examForm.start_date)
+      const now = new Date()
+      if (startDate < now) {
+        errors.start_date = "Start date cannot be set to a date or time in the past"
+      }
+    }
+
+    // Question requirement for activation
     if (examForm.status === "active" && questions.length === 0) {
+      errors.questions = "An exam must have at least one question before it can be activated"
+    }
+
+    setValidationErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  useEffect(() => {
+    if (Object.keys(validationErrors).length > 0) {
+      validateForm()
+    }
+  }, [examForm, questions])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!validateForm()) {
       toast({
         title: "Validation Error",
-        description: "Cannot activate exam without questions. Add at least one question or save as draft.",
+        description: "Please fix the errors below before submitting",
         variant: "destructive",
       })
       return
     }
 
-    // Validate questions if exam is being activated
     if (examForm.status === "active") {
       for (let i = 0; i < questions.length; i++) {
         const question = questions[i]
@@ -358,11 +380,9 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
 
       console.log("[v0] Exam saved successfully, ID:", currentExamId)
 
-      // Save questions if any exist
       if (questions.length > 0) {
         const supabase = createClient()
 
-        // Delete existing questions if editing
         if (examId) {
           console.log("[v0] Deleting existing questions for exam:", examId)
           await supabase.from("exam_questions").delete().eq("exam_id", examId)
@@ -419,6 +439,7 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
           visibility: "all",
         })
         setQuestions([])
+        setValidationErrors({})
       }
     } catch (error) {
       console.log("[v0] Submit error:", error)
@@ -445,59 +466,98 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Exam Title</Label>
+                <Label htmlFor="title">Exam Title *</Label>
                 <Input
                   id="title"
                   value={examForm.title}
                   onChange={(e) => setExamForm({ ...examForm, title: e.target.value })}
+                  className={validationErrors.title ? "border-red-500" : ""}
                   required
                 />
+                {validationErrors.title && (
+                  <div className="flex items-center gap-1 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    {validationErrors.title}
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="duration">Duration (minutes)</Label>
+                <Label htmlFor="duration">Duration (minutes) *</Label>
                 <Input
                   id="duration"
                   type="number"
+                  min="1"
                   value={examForm.duration_minutes}
                   onChange={(e) =>
                     setExamForm({
                       ...examForm,
-                      duration_minutes: Number.parseInt(e.target.value),
+                      duration_minutes: Number.parseInt(e.target.value) || 0,
                     })
                   }
+                  className={validationErrors.duration ? "border-red-500" : ""}
                   required
                 />
+                {validationErrors.duration && (
+                  <div className="flex items-center gap-1 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    {validationErrors.duration}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Description *</Label>
               <Textarea
                 id="description"
                 value={examForm.description}
                 onChange={(e) => setExamForm({ ...examForm, description: e.target.value })}
                 rows={3}
+                className={validationErrors.description ? "border-red-500" : ""}
+                required
               />
+              {validationErrors.description && (
+                <div className="flex items-center gap-1 text-sm text-red-600">
+                  <AlertCircle className="w-4 h-4" />
+                  {validationErrors.description}
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="start_date">Start Date</Label>
+                <Label htmlFor="start_date">Start Date & Time *</Label>
                 <Input
                   id="start_date"
                   type="datetime-local"
                   value={examForm.start_date}
                   onChange={(e) => setExamForm({ ...examForm, start_date: e.target.value })}
+                  className={validationErrors.start_date ? "border-red-500" : ""}
+                  required
                 />
+                {validationErrors.start_date && (
+                  <div className="flex items-center gap-1 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    {validationErrors.start_date}
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="end_date">End Date</Label>
+                <Label htmlFor="end_date">End Date & Time *</Label>
                 <Input
                   id="end_date"
                   type="datetime-local"
                   value={examForm.end_date}
                   onChange={(e) => setExamForm({ ...examForm, end_date: e.target.value })}
+                  className={validationErrors.end_date ? "border-red-500" : ""}
+                  required
                 />
+                {validationErrors.end_date && (
+                  <div className="flex items-center gap-1 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    {validationErrors.end_date}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -532,6 +592,13 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
                 <Label htmlFor="show_results">Show results</Label>
               </div>
             </div>
+
+            {validationErrors.questions && (
+              <div className="flex items-center gap-1 text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+                <AlertCircle className="w-4 h-4" />
+                {validationErrors.questions}
+              </div>
+            )}
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
