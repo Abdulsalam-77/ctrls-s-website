@@ -1,16 +1,8 @@
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
-      },
-    },
-  })
+  const supabase = await createClient()
 
   try {
     // Check if user is admin
@@ -28,17 +20,15 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     const body = await request.json()
-    const { title, description, status, duration_minutes, start_date, end_date } = body
+    const { title, description, is_active, duration_minutes } = body
 
     const { data: exam, error } = await supabase
       .from("exams")
       .update({
         title,
         description,
-        status,
+        is_active,
         duration_minutes,
-        start_date,
-        end_date,
         updated_at: new Date().toISOString(),
       })
       .eq("id", params.id)
@@ -56,14 +46,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
-      },
-    },
-  })
+  const supabase = await createClient()
 
   try {
     // Check if user is admin

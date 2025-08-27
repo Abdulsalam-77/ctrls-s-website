@@ -1,16 +1,8 @@
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
 export async function GET() {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
-      },
-    },
-  })
+  const supabase = await createClient()
 
   try {
     // Check if user is admin
@@ -30,17 +22,17 @@ export async function GET() {
     // Get exam statistics
     const { data: totalExams } = await supabase.from("exams").select("id", { count: "exact" })
 
-    const { data: activeExams } = await supabase.from("exams").select("id", { count: "exact" }).eq("status", "active")
+    const { data: activeExams } = await supabase.from("exams").select("id", { count: "exact" }).eq("is_active", true)
 
-    const { data: upcomingExams } = await supabase.from("exams").select("id", { count: "exact" }).eq("status", "draft")
+    const { data: inactiveExams } = await supabase.from("exams").select("id", { count: "exact" }).eq("is_active", false)
 
-    const { data: totalSubmissions } = await supabase.from("submissions").select("id", { count: "exact" })
+    const { data: totalSubmissions } = await supabase.from("exam_submissions").select("id", { count: "exact" })
 
     return NextResponse.json({
       stats: {
         totalExams: totalExams?.length || 0,
         activeExams: activeExams?.length || 0,
-        upcomingExams: upcomingExams?.length || 0,
+        inactiveExams: inactiveExams?.length || 0,
         totalSubmissions: totalSubmissions?.length || 0,
       },
     })

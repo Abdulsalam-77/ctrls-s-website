@@ -1,16 +1,8 @@
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
-      },
-    },
-  })
+  const supabase = await createClient()
 
   try {
     // Check if user is admin
@@ -29,12 +21,11 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     // Fetch all submissions for the exam with student details
     const { data: submissions, error } = await supabase
-      .from("submissions")
+      .from("exam_submissions")
       .select(`
         *,
         profiles:student_id (
           id,
-          full_name,
           email
         )
       `)
