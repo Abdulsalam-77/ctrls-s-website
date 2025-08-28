@@ -3,14 +3,41 @@
 ctrls-s-website
 ├─ app
 │  ├─ admin
-│  │  └─ exams
-│  │     ├─ route.ts
-│  │     ├─ stats
-│  │     │  └─ route.ts
-│  │     └─ [id]
-│  │        ├─ route.ts
-│  │        └─ submissions
-│  │           └─ route.ts
+│  │  ├─ content-managment
+│  │  │  ├─ lectures
+│  │  │  │  ├─ components
+│  │  │  │  │  └─ LectureCard.tsx
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ notes
+│  │  │  │  ├─ components
+│  │  │  │  │  └─ NoteCard.tsx
+│  │  │  │  └─ page.tsx
+│  │  │  └─ page.tsx
+│  │  ├─ dashboard
+│  │  │  ├─ components
+│  │  │  │  └─ StatCard.tsx
+│  │  │  └─ page.tsx
+│  │  ├─ exam-management
+│  │  │  ├─ components
+│  │  │  │  └─ ExamCard.tsx
+│  │  │  ├─ create
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ edit
+│  │  │  │  └─ [examId]
+│  │  │  │     └─ page.tsx
+│  │  │  └─ page.tsx
+│  │  ├─ exams
+│  │  │  ├─ route.ts
+│  │  │  ├─ stats
+│  │  │  │  └─ route.ts
+│  │  │  └─ [id]
+│  │  │     ├─ route.ts
+│  │  │     └─ submissions
+│  │  │        └─ route.ts
+│  │  ├─ layout.tsx
+│  │  ├─ page.tsx
+│  │  └─ student-management
+│  │     └─ page.tsx
 │  ├─ api
 │  │  ├─ grade
 │  │  │  └─ route.ts
@@ -34,6 +61,10 @@ ctrls-s-website
 │  ├─ dashboard
 │  │  ├─ admin
 │  │  │  ├─ actions.ts
+│  │  │  ├─ exams
+│  │  │  │  └─ edit
+│  │  │  │     └─ [Id]
+│  │  │  │        └─ page.tsx
 │  │  │  └─ page.tsx
 │  │  └─ student
 │  │     ├─ exam
