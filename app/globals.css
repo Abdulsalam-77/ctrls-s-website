@@ -16,10 +16,9 @@ body {
 
 /* Hide scrollbar for IE, Edge, and Firefox */
 body {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
-
 
 @import "tw-animate-css";
 
@@ -115,7 +114,56 @@ body {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
+
+  /* Primary brand colors used throughout the website */
+  .text-primary-purple {
+    color: #6b46c1;
+  }
+  .bg-primary-purple {
+    background-color: #6b46c1;
+  }
+  .hover\:bg-primary-purple:hover {
+    background-color: #6b46c1;
+  }
+  .border-primary-purple {
+    border-color: #6b46c1;
+  }
+
+  /* Accent teal color for buttons and highlights */
+  .text-accent-teal {
+    color: #14b8a6;
+  }
+  .bg-accent-teal {
+    background-color: #14b8a6;
+  }
+  .hover\:bg-accent-teal:hover {
+    background-color: #14b8a6;
+  }
+  .border-accent-teal {
+    border-color: #14b8a6;
+  }
+
+  /* Neutral grey for body text */
+  .text-neutral-grey {
+    color: #6b7280;
+  }
+
+  /* Purple text variant used in dashboards */
+  .text-purple {
+    color: #6b46c1;
+  }
+
+  /* Font family utilities */
+  .font-inter {
+    font-family: "Inter", sans-serif;
+  }
+  .font-tajawal {
+    font-family: "Tajawal", sans-serif;
+  }
+  .font-montserrat {
+    font-family: "Montserrat", sans-serif;
+  }
 }
 
 /* Import Google Fonts */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Tajawal:wght@400;500;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Tajawal:wght@400;500;700;800&family=Montserrat:wght@400;500;700;800&display=swap");
