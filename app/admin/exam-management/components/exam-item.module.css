@@ -1,0 +1,131 @@
+/* Created CSS module for ExamItem styling */
+.examCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.examCard:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.examHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .examHeader {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.examTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-family: "Inter", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #6b46c1;
+}
+
+.examDescription {
+  margin-top: 0.25rem;
+  color: #6b7280;
+}
+
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.activateButton {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+  font-weight: 500;
+}
+
+.activateButton:hover {
+  background-color: #dcfce7;
+}
+
+.deactivateButton {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.deactivateButton:hover {
+  background-color: #fee2e2;
+}
+
+.viewResultsButton {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+.viewResultsButton:hover {
+  background-color: #dbeafe;
+}
+
+.editButton {
+  font-weight: 500;
+}
+
+.editButton:hover {
+  background-color: #f9fafb;
+}
+
+.deleteButton {
+  color: #dc2626;
+  background-color: transparent;
+  border-color: #fecaca;
+}
+
+.deleteButton:hover {
+  color: #b91c1c;
+  background-color: #fef2f2;
+}
+
+.examDetails {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .examDetails {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .examDetails {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.detailLabel {
+  font-weight: 500;
+  color: #374151;
+}
+
+.detailValue {
+  color: #6b7280;
+}
+
+.submissionCount {
+  color: #0d9488;
+  font-weight: 500;
+}

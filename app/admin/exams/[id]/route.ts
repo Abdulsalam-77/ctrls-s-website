@@ -2,8 +2,8 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -44,8 +44,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  const id = params.id
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -77,6 +77,28 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     console.log("[v0] Updating exam with data:", body)
 
+    if (status === "active") {
+      // Check if exam has at least one question
+      const { count: questionCount } = await supabase
+        .from("exam_questions")
+        .select("id", { count: "exact" })
+        .eq("exam_id", id)
+
+      if (!questionCount || questionCount === 0) {
+        return NextResponse.json({ error: "Exam must have questions before activation" }, { status: 400 })
+      }
+
+      // Verify start_date and end_date are not null
+      if (!start_date || !end_date) {
+        return NextResponse.json({ error: "Start date and end date are required for activation" }, { status: 400 })
+      }
+
+      // Verify end_date is after start_date
+      if (new Date(start_date) >= new Date(end_date)) {
+        return NextResponse.json({ error: "End date must be after start date for activation" }, { status: 400 })
+      }
+    }
+
     const { data: exam, error } = await supabase
       .from("exams")
       .update({
@@ -105,8 +127,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const id = params.id
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

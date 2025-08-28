@@ -120,9 +120,11 @@ CREATE TABLE public.exam_questions (
   question_text TEXT NOT NULL,
   question_type TEXT NOT NULL DEFAULT 'multiple_choice', -- 'multiple_choice', 'true_false', 'short_answer'
   options JSONB, -- For multiple choice options
-  correct_answer TEXT NOT NULL,
+  correct_answer TEXT,
   points INTEGER NOT NULL DEFAULT 1,
   order_index INTEGER NOT NULL DEFAULT 0,
+  attachment_url TEXT,
+  attachment_name TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -147,6 +149,7 @@ CREATE TABLE public.exam_submissions (
   student_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
   answers JSONB NOT NULL, -- Store student answers as JSON
   score DECIMAL(5,2), -- Score out of total points
+  feedback TEXT,
   submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   time_taken INTEGER, -- Time taken in minutes
   UNIQUE(exam_id, student_id) -- One submission per student per exam
