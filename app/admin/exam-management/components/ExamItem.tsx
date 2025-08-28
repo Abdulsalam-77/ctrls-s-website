@@ -324,13 +324,11 @@ export default function ExamItem({ exam, onUpdate }: ExamItemProps) {
           </div>
           <div>
             <p className="font-medium text-gray-700">Start Date</p>
-            <p className="text-gray-600">
-              {exam.start_date ? new Date(exam.start_date).toLocaleDateString() : "Not set"}
-            </p>
+            <p className="text-gray-600">{exam.start_date ? new Date(exam.start_date).toLocaleString() : "Not set"}</p>
           </div>
           <div>
             <p className="font-medium text-gray-700">End Date</p>
-            <p className="text-gray-600">{exam.end_date ? new Date(exam.end_date).toLocaleDateString() : "Not set"}</p>
+            <p className="text-gray-600">{exam.end_date ? new Date(exam.end_date).toLocaleString() : "Not set"}</p>
           </div>
           <div>
             <p className="font-medium text-gray-700">Submissions</p>

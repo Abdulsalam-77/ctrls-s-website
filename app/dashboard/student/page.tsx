@@ -1,85 +1,161 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+"use client"
 import { signOut } from "@/app/auth/actions"
 import { Button } from "@/components/ui/button"
-import VideoThumbnailCard from "@/components/video-thumbnail-card"
-import HorizontalScrollCarousel from "@/components/horizontal-scroll-carousel"
-import UpcomingExams from "@/components/student/upcoming-exams"
-import RecentGrades from "@/components/student/recent-grades"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState } from "react"
 
-export default async function StudentDashboardPage() {
-  const supabase = await createClient()
+interface Exam {
+  id: string
+  title: string
+  description: string
+  duration_minutes: number
+  start_date: string
+  end_date: string
+}
 
-  // Server-side authentication check
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect("/auth/login")
+interface Grade {
+  id: string
+  score: number
+  submitted_at: string
+  exams: {
+    id: string
+    title: string
+    description: string
   }
+}
 
-  // Check if user is student (not admin)
-  const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+export default function StudentDashboardPage() {
+  const [upcomingExams, setUpcomingExams] = useState<Exam[]>([])
+  const [activeExams, setActiveExams] = useState<Exam[]>([])
+  const [grades, setGrades] = useState<Grade[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  if (profile?.is_admin) {
-    redirect("/dashboard/admin")
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const upcomingResponse = await fetch("/api/student-exams/upcoming")
+        const upcomingData = await upcomingResponse.json()
+        if (upcomingResponse.ok) {
+          setUpcomingExams(upcomingData.exams)
+        }
+
+        const activeResponse = await fetch("/api/student-exams")
+        const activeData = await activeResponse.json()
+        if (activeResponse.ok) {
+          setActiveExams(activeData.exams)
+        }
+
+        const gradesResponse = await fetch("/api/grades")
+        const gradesData = await gradesResponse.json()
+        if (gradesResponse.ok) {
+          setGrades(gradesData.grades)
+        }
+      } catch (err) {
+        setError("Failed to fetch data")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-8">
+          <p>Loading dashboard...</p>
+        </div>
+      </div>
+    )
   }
-
-  // Mock content data - replace with actual data fetching
-  const currentContent = {
-    auth: {
-      studentDashboard: {
-        title: "Student Dashboard",
-        signOut: "Sign Out",
-        continueWatching: "Continue Watching",
-        noVideosWatched: "No videos watched yet",
-        theoreticalContent: "Theoretical Content",
-        practicalContent: "Practical Content",
-      },
-    },
-    lectures: [], // Replace with actual lecture data
-  }
-
-  const theoreticalVideos = currentContent.lectures.filter((video: any) => video.category === "Theoretical")
-  const practicalVideos = currentContent.lectures.filter((video: any) => video.category === "Practical")
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between">
-        <h1 className="font-montserrat text-3xl font-extrabold text-purple">
-          {currentContent.auth.studentDashboard.title}
-        </h1>
+        <h1 className="font-montserrat text-3xl font-extrabold text-purple">Student Dashboard</h1>
         <form action={signOut}>
           <Button variant="outline" className="bg-red-500 text-white hover:bg-red-600">
-            {currentContent.auth.studentDashboard.signOut}
+            Sign Out
           </Button>
         </form>
       </div>
 
-      <div className="mt-8 space-y-8">
-        <UpcomingExams />
-        <RecentGrades />
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-6">Upcoming Exams</h2>
+        {upcomingExams.length === 0 ? (
+          <p className="text-gray-600">No upcoming exams scheduled.</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {upcomingExams.map((exam) => (
+              <Card key={exam.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-lg">{exam.title}</CardTitle>
+                  <CardDescription>{exam.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <p>Duration: {exam.duration_minutes} minutes</p>
+                    <p>Starts: {new Date(exam.start_date).toLocaleString()}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="mt-8 text-center text-lg text-gray-600">
-        <p>{currentContent.auth.studentDashboard.noVideosWatched}</p>
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-6">Active Exams</h2>
+        {activeExams.length === 0 ? (
+          <p className="text-gray-600">No active exams available at the moment.</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {activeExams.map((exam) => (
+              <Card key={exam.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-lg">{exam.title}</CardTitle>
+                  <CardDescription>{exam.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm text-gray-600 mb-4">
+                    <p>Duration: {exam.duration_minutes} minutes</p>
+                    <p>Ends: {new Date(exam.end_date).toLocaleString()}</p>
+                  </div>
+                  <Button className="w-full">Start Exam</Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="mt-12">
-        <HorizontalScrollCarousel title={currentContent.auth.studentDashboard.theoreticalContent} isArabic={false}>
-          {theoreticalVideos.map((video: any) => (
-            <VideoThumbnailCard key={video.id} video={video} />
-          ))}
-        </HorizontalScrollCarousel>
-      </div>
-
-      <div className="mt-12">
-        <HorizontalScrollCarousel title={currentContent.auth.studentDashboard.practicalContent} isArabic={false}>
-          {practicalVideos.map((video: any) => (
-            <VideoThumbnailCard key={video.id} video={video} />
-          ))}
-        </HorizontalScrollCarousel>
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-6">Recent Grades</h2>
+        {grades.length === 0 ? (
+          <p className="text-gray-600">No grades available yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {grades.map((grade) => (
+              <Card key={grade.id}>
+                <CardContent className="pt-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-semibold">{grade.exams.title}</h3>
+                      <p className="text-sm text-gray-600">
+                        Submitted: {new Date(grade.submitted_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold">{grade.score}%</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

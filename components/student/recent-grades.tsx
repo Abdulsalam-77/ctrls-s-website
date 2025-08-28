@@ -147,7 +147,7 @@ export default function RecentGrades() {
                       <div>
                         <CardTitle className="text-lg">{grade.exams.title}</CardTitle>
                         <CardDescription className="mt-1">
-                          Completed on {new Date(grade.end_time).toLocaleDateString()}
+                          Completed on {new Date(grade.end_time).toLocaleString()}
                         </CardDescription>
                       </div>
                       <div className="text-right">

@@ -24,26 +24,20 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Fetch student's grades
-    const { data: submissions, error } = await supabase
-      .from("exam_submissions")
-      .select(`
-        *,
-        exams (
-          id,
-          title,
-          description
-        )
-      `)
-      .eq("student_id", user.id)
-      .not("score", "is", null)
-      .order("submitted_at", { ascending: false })
+    const now = new Date().toISOString()
+
+    const { data: exams, error } = await supabase
+      .from("exams")
+      .select("*")
+      .eq("status", "active")
+      .gt("start_date", now)
+      .order("start_date", { ascending: true })
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ grades: submissions })
+    return NextResponse.json({ exams: exams || [] })
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

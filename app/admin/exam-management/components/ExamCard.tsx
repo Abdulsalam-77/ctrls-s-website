@@ -88,13 +88,13 @@ export default function ExamCard({
           {startDate && (
             <div>
               <p className="font-medium text-gray-700">Start Date</p>
-              <p className="text-gray-600">{new Date(startDate).toLocaleDateString()}</p>
+              <p className="text-gray-600">{new Date(startDate).toLocaleString()}</p>
             </div>
           )}
           {endDate && (
             <div>
               <p className="font-medium text-gray-700">End Date</p>
-              <p className="text-gray-600">{new Date(endDate).toLocaleDateString()}</p>
+              <p className="text-gray-600">{new Date(endDate).toLocaleString()}</p>
             </div>
           )}
           <div>

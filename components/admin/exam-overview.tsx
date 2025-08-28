@@ -230,7 +230,7 @@ export default function ExamOverview() {
   }
 
   const handleEditExam = (examId: string) => {
-    router.push(`/dashboard/admin/exams/edit/${examId}`)
+    router.push(`/dashboard/admin/exam/edit/${examId}`)
   }
 
   const ExamCard = ({
