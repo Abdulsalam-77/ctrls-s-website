@@ -65,6 +65,7 @@ export default function ExamOverview() {
       if (!response.ok) throw new Error("Failed to fetch exams")
 
       const { exams: examData } = await response.json()
+      console.log(examData)
       setExams(examData || [])
     } catch (error) {
       console.log("[v0] Error fetching exams:", error)
@@ -230,7 +231,7 @@ export default function ExamOverview() {
   }
 
   const handleEditExam = (examId: string) => {
-    router.push(`/dashboard/admin/exam/edit/${examId}`)
+    router.push(`/dashboard/admin/exams/edit/${examId}`)
   }
 
   const ExamCard = ({

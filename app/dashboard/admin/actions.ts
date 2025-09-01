@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient, createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
@@ -26,7 +26,7 @@ export type Profile = {
 
 // --- Dashboard Stats (Prompt 6) ---
 export async function fetchAdminDashboardStats() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   // Total Students
   const { count: totalStudents, error: studentsError } = await supabase
@@ -165,7 +165,7 @@ export async function deleteLecture(id: string) {
 
 // --- Student Management (Prompt 4 & 5) ---
 export async function fetchStudents(): Promise<{ data: Profile[] | null; error: string | null }> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   // FIX: Include 'is_admin' in the select query to match the Profile type
   const { data, error } = await supabase
     .from("profiles")

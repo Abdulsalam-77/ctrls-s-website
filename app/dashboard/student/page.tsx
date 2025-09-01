@@ -1,4 +1,5 @@
 "use client"
+
 import { signOut } from "@/app/auth/actions"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,6 +25,18 @@ interface Grade {
   }
 }
 
+// Helper function to format date as DD/MM/YY HH:MM
+function formatDateUTC(dateString: string) {
+  const date = new Date(dateString)
+  const day = String(date.getUTCDate()).padStart(2, "0")
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0")
+  const year = String(date.getUTCFullYear()).slice(-2)
+  const hours = String(date.getUTCHours()).padStart(2, "0")
+  const minutes = String(date.getUTCMinutes()).padStart(2, "0")
+  return `${day}/${month}/${year} ${hours}:${minutes}`
+}
+
+
 export default function StudentDashboardPage() {
   const [upcomingExams, setUpcomingExams] = useState<Exam[]>([])
   const [activeExams, setActiveExams] = useState<Exam[]>([])
@@ -36,21 +49,15 @@ export default function StudentDashboardPage() {
       try {
         const upcomingResponse = await fetch("/api/student-exams/upcoming")
         const upcomingData = await upcomingResponse.json()
-        if (upcomingResponse.ok) {
-          setUpcomingExams(upcomingData.exams)
-        }
+        if (upcomingResponse.ok) setUpcomingExams(upcomingData.exams)
 
         const activeResponse = await fetch("/api/student-exams")
         const activeData = await activeResponse.json()
-        if (activeResponse.ok) {
-          setActiveExams(activeData.exams)
-        }
+        if (activeResponse.ok) setActiveExams(activeData.exams)
 
         const gradesResponse = await fetch("/api/grades")
         const gradesData = await gradesResponse.json()
-        if (gradesResponse.ok) {
-          setGrades(gradesData.grades)
-        }
+        if (gradesResponse.ok) setGrades(gradesData.grades)
       } catch (err) {
         setError("Failed to fetch data")
       } finally {
@@ -82,30 +89,37 @@ export default function StudentDashboardPage() {
         </form>
       </div>
 
+      {/* Upcoming Exams */}
       <div className="mt-8">
         <h2 className="text-2xl font-bold mb-6">Upcoming Exams</h2>
         {upcomingExams.length === 0 ? (
           <p className="text-gray-600">No upcoming exams scheduled.</p>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {upcomingExams.map((exam) => (
-              <Card key={exam.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="text-lg">{exam.title}</CardTitle>
-                  <CardDescription>{exam.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <p>Duration: {exam.duration_minutes} minutes</p>
-                    <p>Starts: {new Date(exam.start_date).toLocaleString()}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {upcomingExams.map((exam) => {
+              console.log("Exam start date:", exam.start_date) // <-- Log here
+              console.log("Exam start date:", formatDateUTC(exam.start_date)) // <-- Log here
+              return (
+                <Card key={exam.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="text-lg">{exam.title}</CardTitle>
+                    <CardDescription>{exam.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <p>Duration: {exam.duration_minutes} minutes</p>
+                      <p>Starts: {formatDateUTC(exam.start_date)}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         )}
       </div>
 
+
+      {/* Active Exams */}
       <div className="mt-8">
         <h2 className="text-2xl font-bold mb-6">Active Exams</h2>
         {activeExams.length === 0 ? (
@@ -121,7 +135,7 @@ export default function StudentDashboardPage() {
                 <CardContent>
                   <div className="space-y-2 text-sm text-gray-600 mb-4">
                     <p>Duration: {exam.duration_minutes} minutes</p>
-                    <p>Ends: {new Date(exam.end_date).toLocaleString()}</p>
+                    <p>Ends: {formatDateUTC(exam.end_date)}</p>
                   </div>
                   <Button className="w-full">Start Exam</Button>
                 </CardContent>
@@ -131,6 +145,7 @@ export default function StudentDashboardPage() {
         )}
       </div>
 
+      {/* Recent Grades */}
       <div className="mt-8">
         <h2 className="text-2xl font-bold mb-6">Recent Grades</h2>
         {grades.length === 0 ? (
@@ -144,7 +159,7 @@ export default function StudentDashboardPage() {
                     <div>
                       <h3 className="font-semibold">{grade.exams.title}</h3>
                       <p className="text-sm text-gray-600">
-                        Submitted: {new Date(grade.submitted_at).toLocaleString()}
+                        Submitted: {formatDateUTC(grade.submitted_at)}
                       </p>
                     </div>
                     <div className="text-right">

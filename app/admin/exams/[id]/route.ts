@@ -3,7 +3,7 @@ import { cookies } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  const id = params.id; // Safely store the ID
+  const id = await params.id; // Safely store the ID
   const cookieStore = cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -84,47 +84,47 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-    const id = params.id; // Safely store the ID
-    const cookieStore = cookies()
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-        cookies: {
-            async get(name: string) {
-            return (await cookieStore).get(name)?.value
-            },
+  const id = params.id; // Safely store the ID
+  const cookieStore = cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async get(name: string) {
+          return (await cookieStore).get(name)?.value
         },
-        },
-    )
+      },
+    },
+  )
 
-    try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-        const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
-        if (!profile?.is_admin) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
-
-        // Before deleting the exam, delete related questions
-        const { error: questionsError } = await supabase.from("exam_questions").delete().eq("exam_id", id);
-        if (questionsError) {
-            // Log the error but continue to attempt to delete the exam
-            console.error("Error deleting exam questions:", questionsError.message);
-        }
-        
-        const { error: examError } = await supabase.from("exams").delete().eq("id", id);
-        if (examError) {
-            throw examError;
-        }
-
-        return NextResponse.json({ success: true });
-
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Internal server error";
-        console.error("Error deleting exam:", errorMessage);
-        return NextResponse.json({ error: errorMessage }, { status: 500 });
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
+    if (!profile?.is_admin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Before deleting the exam, delete related questions
+    const { error: questionsError } = await supabase.from("exam_questions").delete().eq("exam_id", id);
+    if (questionsError) {
+      // Log the error but continue to attempt to delete the exam
+      console.error("Error deleting exam questions:", questionsError.message);
+    }
+
+    const { error: examError } = await supabase.from("exams").delete().eq("id", id);
+    if (examError) {
+      throw examError;
+    }
+
+    return NextResponse.json({ success: true });
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Internal server error";
+    console.error("Error deleting exam:", errorMessage);
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
 }

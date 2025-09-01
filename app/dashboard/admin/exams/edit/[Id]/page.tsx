@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 
 interface EditExamPageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ Id: string }>
 }
 
 export default function EditExamPage({ params }: EditExamPageProps) {
@@ -17,17 +17,21 @@ export default function EditExamPage({ params }: EditExamPageProps) {
   useEffect(() => {
     const getParams = async () => {
       const resolvedParams = await params
-      setExamId(resolvedParams.id)
+      setExamId(resolvedParams.Id)
     }
     getParams()
+
+
   }, [params])
 
   const handleSuccess = () => {
     router.push("/dashboard/admin")
   }
 
+
   if (!examId) {
     return (
+
       <div className="container mx-auto p-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">

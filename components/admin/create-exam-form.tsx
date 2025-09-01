@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { Plus, Trash2, X, GripVertical, Upload, FileText, AlertCircle } from "lucide-react"
 import { put } from "@vercel/blob"
+import { createAdminClient } from "@/lib/supabase/server"
 
 interface Question {
   id: string
@@ -109,7 +110,9 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
         file_url: q.attachment_url,
       }))
 
+      setDraggedItem(null)
       setQuestions(loadedQuestions)
+
     } catch (error) {
       console.log("[v0] Error loading exam data:", error)
       toast({
@@ -134,8 +137,14 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
   }
 
   const updateQuestion = (id: string, updates: Partial<Question>) => {
-    setQuestions(questions.map((q) => (q.id === id ? { ...q, ...updates } : q)))
+    setQuestions(prev =>
+      prev.map(q => q.id === id
+        ? { ...q, ...updates, options: updates.options ? { ...updates.options } : q.options }
+        : q
+      )
+    )
   }
+
 
   const removeQuestion = (id: string) => {
     setQuestions(questions.filter((q) => q.id !== id))
@@ -144,7 +153,7 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
   const updateOption = (questionId: string, optionKey: string, value: string) => {
     const question = questions.find((q) => q.id === questionId)
     if (question) {
-      const newOptions = { ...question.options }
+      const newOptions = { ...question.options } // clone object
       newOptions[optionKey] = value
       updateQuestion(questionId, { options: newOptions })
     }
@@ -298,135 +307,63 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
   }, [examForm, questions])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
       toast({
         title: "Validation Error",
-        description: "Please fix the errors below before submitting",
+        description: "Please fix the errors before submitting",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    if (examForm.status === "active") {
-      for (let i = 0; i < questions.length; i++) {
-        const question = questions[i]
-        if (!question.question_text.trim()) {
-          toast({
-            title: "Validation Error",
-            description: `Question ${i + 1} text is required`,
-            variant: "destructive",
-          })
-          return
-        }
-
-        if ((question.question_type === "mcq" || question.question_type === "true_false") && !question.correct_answer) {
-          toast({
-            title: "Validation Error",
-            description: `Question ${i + 1} must have a correct answer selected`,
-            variant: "destructive",
-          })
-          return
-        }
-
-        if (question.question_type === "mcq") {
-          const hasEmptyOptions = Object.values(question.options).some((option) => !option.trim())
-          if (hasEmptyOptions) {
-            toast({
-              title: "Validation Error",
-              description: `Question ${i + 1} has empty options. Please fill all options or remove them.`,
-              variant: "destructive",
-            })
-            return
-          }
-        }
-      }
-    }
-
-    setLoading(true)
+    setLoading(true);
 
     try {
-      console.log("[v0] Submitting exam form:", examForm)
+      const url = examId ? `/api/admin/exams` : "/api/admin/exams";
+      const method = examId ? "PUT" : "POST";
 
-      const response = examId
-        ? await fetch(`/admin/exams/${examId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(examForm),
-          })
-        : await fetch("/admin/exams", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(examForm),
-          })
+      const payload = examId
+        ? { ...examForm, questions, id: examId } // Include examId in body for PUT
+        : { ...examForm, questions };
 
-      console.log("[v0] Exam API response status:", response.status)
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      // Safely parse JSON
+      let data: any = null;
+      try {
+        data = await response.json();
+      } catch (err) {
+        console.error("Failed to parse JSON:", err);
+      }
 
       if (!response.ok) {
-        const errorData = await response.json()
-        console.log("[v0] Exam API error:", errorData)
-
+        console.log("[v0] API Error:", data);
         toast({
           title: "Error",
-          description: errorData.error || `Failed to ${examId ? "update" : "create"} exam. Please try again.`,
+          description: data?.error || `Failed to ${examId ? "update" : "create"} exam.`,
           variant: "destructive",
-        })
-        return
+        });
+        return;
       }
 
-      const { exam } = await response.json()
-      const currentExamId = examId || exam.id
-
-      console.log("[v0] Exam saved successfully, ID:", currentExamId)
-
-      if (questions.length > 0) {
-        const supabase = createClient()
-
-        if (examId) {
-          console.log("[v0] Deleting existing questions for exam:", examId)
-          await supabase.from("exam_questions").delete().eq("exam_id", examId)
-        }
-
-        const questionsToInsert = questions.map((q) => ({
-          exam_id: currentExamId,
-          question_text: q.question_text,
-          question_type: q.question_type,
-          options: q.options,
-          correct_answer: q.correct_answer,
-          points: q.points,
-          order_index: q.order_index,
-          attachment_url: q.file_url,
-          attachment_name: q.file_url ? q.file_url.split("/").pop() : null,
-        }))
-
-        console.log("[v0] Inserting questions:", questionsToInsert.length)
-
-        const { error: questionsError } = await supabase.from("exam_questions").insert(questionsToInsert)
-
-        if (questionsError) {
-          console.log("[v0] Questions insert error:", questionsError)
-          toast({
-            title: "Warning",
-            description: "Exam created but failed to save some questions. Please edit the exam to add questions.",
-            variant: "destructive",
-          })
-          return
-        }
-
-        console.log("[v0] Questions saved successfully")
-      }
+      const currentExamId = examId || data?.exam?.id;
 
       toast({
         title: "Success!",
         description: examId
           ? "Exam updated successfully"
-          : `Exam created successfully${examForm.status === "active" ? " and is now active" : " as draft"}`,
-      })
+          : `Exam created successfully${examForm.status === "active" ? " and is now active" : " as draft"
+          }`,
+      });
 
-      if (onSuccess) {
-        onSuccess()
-      } else {
+      if (onSuccess) onSuccess();
+      else {
         setExamForm({
           title: "",
           description: "",
@@ -437,21 +374,25 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
           allow_review: true,
           show_results: true,
           visibility: "all",
-        })
-        setQuestions([])
-        setValidationErrors({})
+        });
+        setQuestions([]);
+        setValidationErrors({});
       }
     } catch (error) {
-      console.log("[v0] Submit error:", error)
+      console.log("[v0] Submit error:", error);
       toast({
         title: "Error",
-        description: `Failed to ${examId ? "update" : "create"} exam. Please check your connection and try again.`,
+        description: `Failed to ${examId ? "update" : "create"} exam. Check your connection and try again.`,
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+
+
+
 
   return (
     <div className="space-y-6">
@@ -632,9 +573,8 @@ export default function CreateExamForm({ examId, onSuccess }: CreateExamFormProp
               {questions.map((question, index) => (
                 <Card
                   key={question.id}
-                  className={`transition-all duration-200 ${
-                    draggedItem === question.id ? "opacity-50 scale-95" : "hover:shadow-md"
-                  }`}
+                  className={`transition-all duration-200 ${draggedItem === question.id ? "opacity-50 scale-95" : "hover:shadow-md"
+                    }`}
                   draggable
                   onDragStart={(e) => handleDragStart(e, question.id)}
                   onDragOver={handleDragOver}
