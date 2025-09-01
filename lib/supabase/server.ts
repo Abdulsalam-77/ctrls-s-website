@@ -1,14 +1,12 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 
 export async function createClient() {
-  // Made async
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://kbvxiiskkbaqhazvvuak.supabase.co"
-  const supabaseAnonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtidnhpaXNra2JhcWhhenZ2dWFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyMjM1MzQsImV4cCI6MjA2OTc5OTUzNH0.VirREIN3VSt1DPxjsMlLrPxt-zSaQh0Mu-4qM3YgEBU"
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  const cookieStore = await cookies() // Await cookies() to satisfy Next.js's static analysis
+  const cookieStore = await cookies()
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -19,20 +17,28 @@ export async function createClient() {
         try {
           cookieStore.set({ name, value, ...options })
         } catch (error) {
-          // The `set` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
+          // safe to ignore in Server Components
         }
       },
       remove(name: string, options: CookieOptions) {
         try {
           cookieStore.set({ name, value: "", ...options })
         } catch (error) {
-          // The `delete` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
+          // safe to ignore in Server Components
         }
       },
     },
   })
+}
+
+// 🚀 New: Admin client (bypasses RLS)
+export function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Missing Supabase URL or Service Role Key in environment variables")
+  }
+
+  return createSupabaseClient(supabaseUrl, serviceRoleKey)
 }

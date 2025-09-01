@@ -26,6 +26,7 @@ export default function DashboardOverview() {
     const getStats = async () => {
       setLoading(true)
       const result = await fetchAdminDashboardStats()
+      console.log("result", result)
       setStats(result)
       setLoading(false)
     }

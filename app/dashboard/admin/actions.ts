@@ -1,6 +1,7 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createClient, createAdminClient } from "@/lib/supabase/server"
+import { CloudCog } from "lucide-react"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
@@ -13,26 +14,39 @@ export type ContentItem = {
   section: string
   url: string | null
   text_content: string | null
-  thumbnail_image: string | null // Added thumbnail_image
+  thumbnail_image: string | null
   created_at: string
 }
 
 export type Profile = {
   id: string
   email: string | null
-  is_admin: boolean // This is required by the type
+  is_admin: boolean
   created_at: string
 }
 
 // --- Dashboard Stats (Prompt 6) ---
 export async function fetchAdminDashboardStats() {
-  const supabase = await createClient()
+  const supabase = createAdminClient() // ✅ Service role client
+
+  // Debug: Log all profiles
+  const { data: allProfiles, error: profilesError } = await supabase
+    .from("profiles")
+    .select("*")
+
+  if (profilesError) {
+    console.error("Error fetching profiles:", profilesError.message)
+  } else {
+    console.log("All profiles:", allProfiles)
+  }
 
   // Total Students
   const { count: totalStudents, error: studentsError } = await supabase
     .from("profiles")
     .select("id", { count: "exact" })
     .eq("is_admin", false)
+
+  console.log("totalStudents", totalStudents)
 
   if (studentsError) {
     console.error("Error fetching total students:", studentsError.message)
@@ -74,7 +88,7 @@ export async function fetchAdminDashboardStats() {
 
 // --- Content Management (Prompt 2 & 3) ---
 export async function fetchContentItems(): Promise<{ data: ContentItem[] | null; error: string | null }> {
-  const supabase = await createClient()
+  const supabase = await createClient() // normal client
   const { data, error } = await supabase.from("content_items").select("*").order("created_at", { ascending: false })
 
   if (error) {
@@ -89,7 +103,7 @@ export async function addLecture(formData: FormData) {
 
   const title = formData.get("title") as string
   const description = formData.get("description") as string
-  const category = formData.get("category") as string // 'Theoretical' or 'Practical'
+  const category = formData.get("category") as string
   const thumbnailImage = formData.get("thumbnailImage") as string
   const videoSourceUrl = formData.get("videoSourceUrl") as string
 
@@ -100,7 +114,7 @@ export async function addLecture(formData: FormData) {
   const { error } = await supabase.from("content_items").insert({
     title,
     description,
-    type: "video", // Assuming all lectures are videos for now
+    type: "video",
     section: category,
     url: videoSourceUrl,
     thumbnail_image: thumbnailImage,
@@ -111,7 +125,7 @@ export async function addLecture(formData: FormData) {
     return { success: false, message: error.message }
   }
 
-  revalidatePath("/dashboard/admin") // Revalidate the admin dashboard page
+  revalidatePath("/dashboard/admin")
   return { success: true, message: "Lecture added successfully!" }
 }
 
@@ -165,13 +179,14 @@ export async function deleteLecture(id: string) {
 
 // --- Student Management (Prompt 4 & 5) ---
 export async function fetchStudents(): Promise<{ data: Profile[] | null; error: string | null }> {
-  const supabase = await createClient()
-  // FIX: Include 'is_admin' in the select query to match the Profile type
+  const supabase = createAdminClient() // ✅ Service role client
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, created_at, is_admin") // Added is_admin here
-    .eq("is_admin", false) // Only fetch non-admin profiles
+    .select("id, email, created_at, is_admin")
+    .eq("is_admin", false)
     .order("created_at", { ascending: false })
+
+  console.log("fetch students", data)
 
   if (error) {
     console.error("Error fetching students:", error.message)
@@ -185,20 +200,17 @@ export async function createStudentAccount(formData: FormData) {
 
   const email = formData.get("email") as string
   const password = formData.get("password") as string
-  const fullName = formData.get("fullName") as string // Not directly used by auth.signUp, but good for UI
+  const fullName = formData.get("fullName") as string
 
   if (!email || !password) {
     return { success: false, message: "Email and Password are required." }
   }
 
-  // Supabase auth.signUp automatically creates a profile via the trigger
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: {
-        full_name: fullName, // This can be passed to the trigger if you modify it to accept full_name
-      },
+      data: { full_name: fullName },
     },
   })
 
